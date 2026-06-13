@@ -1,0 +1,14 @@
+# Prithvi
+
+> India-first personal carbon footprint platform: understand carbon emissions, measure your yearly footprint, get personalised India-specific reduction actions, and stay motivated with streaks and badges.
+
+Prithvi is a web app built with React, Vite, TypeScript and Firebase. It estimates a person's annual CO₂e footprint from home energy, travel, food and goods using India-calibrated emission factors, benchmarks it against India/Japan/USA per-capita figures, and recommends impact-ranked actions.
+
+## Pages
+- [Home & learn](https://supplypulse-c27c0.web.app/): what carbon emissions are and how India compares to the world.
+- [Sign up](https://supplypulse-c27c0.web.app/signup): create an account to track your footprint.
+- [Log in](https://supplypulse-c27c0.web.app/login): return to your dashboard.
+
+## Notes
+- Authentication and data storage use Firebase (email/password).
+- AI insights use Google Gemini via a secure server-side function; a deterministic engine is the fallback.

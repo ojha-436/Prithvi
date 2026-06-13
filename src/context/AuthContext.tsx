@@ -1,0 +1,225 @@
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut as fbSignOut,
+  updateProfile,
+  type User as FbUser,
+} from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { auth, db, googleProvider, isFirebaseConfigured } from "@/lib/firebase";
+import { initGameState } from "@/lib/gamification";
+import type { GamificationState, LifestyleInput, FootprintResult, UserData, UserProfile } from "@/types";
+
+interface SessionUser {
+  uid: string;
+  email: string;
+  displayName: string;
+}
+
+interface AuthContextValue {
+  user: SessionUser | null;
+  userData: UserData | null;
+  loading: boolean;
+  demoMode: boolean;
+  signUp: (email: string, password: string, name: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  signOut: () => Promise<void>;
+  saveProfile: (profile: Partial<UserProfile>) => Promise<void>;
+  saveFootprint: (lifestyle: LifestyleInput, footprint: FootprintResult) => Promise<void>;
+  updateGame: (game: GamificationState) => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+const LS_USERS = "prithvi.demo.users";
+const LS_SESSION = "prithvi.demo.session";
+const dataKey = (uid: string) => `prithvi.data.${uid}`;
+
+function baseUserData(user: SessionUser): UserData {
+  return {
+    profile: {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      city: "",
+      state: "",
+      householdSize: 3,
+      homeType: "apartment",
+      onboarded: false,
+      createdAt: Date.now(),
+    },
+    game: initGameState(),
+  };
+}
+
+// ── Storage abstraction (Firestore when configured, localStorage in demo) ────
+async function loadUserData(user: SessionUser): Promise<UserData> {
+  if (isFirebaseConfigured && db) {
+    const ref = doc(db, "users", user.uid);
+    const snap = await getDoc(ref);
+    if (snap.exists()) return snap.data() as UserData;
+    const fresh = baseUserData(user);
+    await setDoc(ref, fresh);
+    return fresh;
+  }
+  const raw = localStorage.getItem(dataKey(user.uid));
+  if (raw) return JSON.parse(raw) as UserData;
+  const fresh = baseUserData(user);
+  localStorage.setItem(dataKey(user.uid), JSON.stringify(fresh));
+  return fresh;
+}
+
+async function persistUserData(uid: string, data: UserData): Promise<void> {
+  if (isFirebaseConfigured && db) {
+    await setDoc(doc(db, "users", uid), data, { merge: true });
+  } else {
+    localStorage.setItem(dataKey(uid), JSON.stringify(data));
+  }
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<SessionUser | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const demoMode = !isFirebaseConfigured;
+
+  const hydrate = useCallback(async (u: SessionUser | null) => {
+    setUser(u);
+    if (u) setUserData(await loadUserData(u));
+    else setUserData(null);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (isFirebaseConfigured && auth) {
+      return onAuthStateChanged(auth, (fb: FbUser | null) => {
+        void hydrate(
+          fb
+            ? { uid: fb.uid, email: fb.email ?? "", displayName: fb.displayName ?? fb.email?.split("@")[0] ?? "Friend" }
+            : null
+        );
+      });
+    }
+    // Demo mode: restore session from localStorage
+    const raw = localStorage.getItem(LS_SESSION);
+    void hydrate(raw ? (JSON.parse(raw) as SessionUser) : null);
+  }, [hydrate]);
+
+  // ── Auth methods ──────────────────────────────────────────────────────────
+  const signUp = useCallback(async (email: string, password: string, name: string) => {
+    if (isFirebaseConfigured && auth) {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(cred.user, { displayName: name });
+      await hydrate({ uid: cred.user.uid, email, displayName: name });
+      return;
+    }
+    const users = JSON.parse(localStorage.getItem(LS_USERS) || "{}");
+    if (users[email]) throw new Error("An account with this email already exists.");
+    const uid = `demo-${Date.now()}`;
+    users[email] = { uid, password, name };
+    localStorage.setItem(LS_USERS, JSON.stringify(users));
+    const session = { uid, email, displayName: name };
+    localStorage.setItem(LS_SESSION, JSON.stringify(session));
+    await hydrate(session);
+  }, [hydrate]);
+
+  const signIn = useCallback(async (email: string, password: string) => {
+    if (isFirebaseConfigured && auth) {
+      await signInWithEmailAndPassword(auth, email, password);
+      return;
+    }
+    const users = JSON.parse(localStorage.getItem(LS_USERS) || "{}");
+    const record = users[email];
+    if (!record || record.password !== password) throw new Error("Invalid email or password.");
+    const session = { uid: record.uid, email, displayName: record.name };
+    localStorage.setItem(LS_SESSION, JSON.stringify(session));
+    await hydrate(session);
+  }, [hydrate]);
+
+  const signInWithGoogle = useCallback(async () => {
+    if (isFirebaseConfigured && auth) {
+      await signInWithPopup(auth, googleProvider);
+      return;
+    }
+    const uid = "demo-google";
+    const session = { uid, email: "guest@prithvi.app", displayName: "Guest Explorer" };
+    localStorage.setItem(LS_SESSION, JSON.stringify(session));
+    await hydrate(session);
+  }, [hydrate]);
+
+  const signOut = useCallback(async () => {
+    if (isFirebaseConfigured && auth) await fbSignOut(auth);
+    else localStorage.removeItem(LS_SESSION);
+    await hydrate(null);
+  }, [hydrate]);
+
+  // ── Data mutations ──────────────────────────────────────────────────────────
+  const commit = useCallback(
+    async (next: UserData) => {
+      setUserData(next);
+      if (user) await persistUserData(user.uid, next);
+    },
+    [user]
+  );
+
+  const saveProfile = useCallback(
+    async (profile: Partial<UserProfile>) => {
+      if (!userData) return;
+      await commit({ ...userData, profile: { ...userData.profile, ...profile, onboarded: true } });
+    },
+    [userData, commit]
+  );
+
+  const saveFootprint = useCallback(
+    async (lifestyle: LifestyleInput, footprint: FootprintResult) => {
+      if (!userData) return;
+      await commit({ ...userData, lifestyle, footprint });
+    },
+    [userData, commit]
+  );
+
+  const updateGame = useCallback(
+    async (game: GamificationState) => {
+      if (!userData) return;
+      await commit({ ...userData, game });
+    },
+    [userData, commit]
+  );
+
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user,
+      userData,
+      loading,
+      demoMode,
+      signUp,
+      signIn,
+      signInWithGoogle,
+      signOut,
+      saveProfile,
+      saveFootprint,
+      updateGame,
+    }),
+    [user, userData, loading, demoMode, signUp, signIn, signInWithGoogle, signOut, saveProfile, saveFootprint, updateGame]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}

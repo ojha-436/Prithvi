@@ -1,0 +1,154 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Prithvi design tokens — "Editorial climate intelligence"
+   Pine/evergreen primary · warm saffron accent · paper background
+   ───────────────────────────────────────────────────────────────────────── */
+@layer base {
+  :root {
+    --background: 43 33% 95%;
+    --foreground: 156 18% 12%;
+
+    --card: 40 40% 99%;
+    --card-foreground: 156 18% 12%;
+
+    --popover: 40 40% 99%;
+    --popover-foreground: 156 18% 12%;
+
+    --primary: 153 64% 22%;
+    --primary-foreground: 45 40% 97%;
+
+    --secondary: 42 26% 90%;
+    --secondary-foreground: 156 22% 18%;
+
+    --accent: 30 70% 48%;
+    --accent-foreground: 40 60% 98%;
+
+    --muted: 42 24% 91%;
+    --muted-foreground: 152 7% 38%;
+
+    --success: 152 55% 34%;
+    --success-foreground: 45 40% 97%;
+
+    --destructive: 6 64% 47%;
+    --destructive-foreground: 40 60% 98%;
+
+    --border: 40 20% 85%;
+    --input: 40 20% 85%;
+    --ring: 153 64% 22%;
+
+    --radius: 0.7rem;
+  }
+
+  .dark {
+    --background: 156 26% 6%;
+    --foreground: 45 22% 92%;
+
+    --card: 156 20% 9%;
+    --card-foreground: 45 22% 92%;
+
+    --popover: 156 22% 8%;
+    --popover-foreground: 45 22% 92%;
+
+    --primary: 152 52% 47%;
+    --primary-foreground: 156 35% 7%;
+
+    --secondary: 156 16% 15%;
+    --secondary-foreground: 45 22% 92%;
+
+    --accent: 33 82% 56%;
+    --accent-foreground: 156 35% 8%;
+
+    --muted: 156 15% 14%;
+    --muted-foreground: 150 9% 64%;
+
+    --success: 152 48% 50%;
+    --success-foreground: 156 35% 8%;
+
+    --destructive: 6 60% 55%;
+    --destructive-foreground: 40 60% 98%;
+
+    --border: 156 14% 17%;
+    --input: 156 14% 19%;
+    --ring: 152 52% 47%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "ss01", "cv01";
+  }
+  h1, h2, h3, h4 {
+    @apply font-display;
+    font-optical-sizing: auto;
+    letter-spacing: -0.015em;
+  }
+  ::selection {
+    background: hsl(var(--primary) / 0.18);
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  /* Paper grain + contour atmosphere for hero / section backdrops */
+  .bg-paper {
+    background-color: hsl(var(--background));
+    background-image:
+      radial-gradient(at 88% 8%, hsl(var(--accent) / 0.07) 0px, transparent 42%),
+      radial-gradient(at 6% 96%, hsl(var(--primary) / 0.08) 0px, transparent 46%);
+  }
+  .bg-contour {
+    background-image: url("/contour.svg");
+    background-size: 760px;
+    background-position: center;
+  }
+  .text-gradient {
+    background: linear-gradient(100deg, hsl(var(--primary)), hsl(var(--accent)));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .ring-hairline {
+    box-shadow: inset 0 0 0 1px hsl(var(--border));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Recharts polish */
+.recharts-cartesian-axis-tick-value {
+  font-size: 12px;
+  fill: hsl(var(--muted-foreground));
+}
+.recharts-default-tooltip {
+  border-radius: 10px !important;
+  border: 1px solid hsl(var(--border)) !important;
+  background: hsl(var(--popover)) !important;
+}

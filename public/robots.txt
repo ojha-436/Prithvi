@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://supplypulse-c27c0.web.app/sitemap.xml

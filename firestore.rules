@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Shape + bounds validation for the profile object to reject malformed or
+    // oversized writes (defence-in-depth against a tampered client).
+    function validProfile(p) {
+      return p.uid == request.auth.uid
+        && p.displayName is string && p.displayName.size() > 0 && p.displayName.size() <= 80
+        && p.email is string && p.email.size() <= 120
+        && p.city is string && p.city.size() <= 80
+        && p.state is string && p.state.size() <= 60
+        && p.householdSize is number && p.householdSize >= 1 && p.householdSize <= 50
+        && p.onboarded is bool;
+    }
+
+    match /users/{userId} {
+      allow read, delete: if isOwner(userId);
+
+      // Only the owner may write, and any profile included must be well-formed.
+      allow create, update: if isOwner(userId)
+        && (!('profile' in request.resource.data) || validProfile(request.resource.data.profile));
+
+      // Any future per-user subcollections remain strictly owner-scoped.
+      match /{document=**} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Everything else is denied by default (no implicit public access).
+  }
+}
