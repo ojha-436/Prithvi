@@ -8,7 +8,7 @@ import { FACTORS } from "./emissions";
  */
 export function generateRecommendations(
   input: LifestyleInput,
-  _footprint: FootprintResult
+  _footprint: FootprintResult,
 ): Recommendation[] {
   const recs: Recommendation[] = [];
   const push = (r: Omit<Recommendation, "source">) => recs.push({ ...r, source: "engine" });
@@ -17,14 +17,16 @@ export function generateRecommendations(
   if (["car-petrol", "car-diesel"].includes(input.commuteMode) && input.commuteKmPerDay > 5) {
     const current = FACTORS.commutePerKm[input.commuteMode];
     const saving = Math.round(
-      input.commuteKmPerDay * FACTORS.workingDaysPerYear * (current - FACTORS.commutePerKm["public-transport"])
+      input.commuteKmPerDay *
+        FACTORS.workingDaysPerYear *
+        (current - FACTORS.commutePerKm["public-transport"]),
     );
     push({
       id: "commute-switch",
       category: "travel",
       title: "Shift 3 commute days a week to metro / bus",
       detail: `Your ${input.commuteKmPerDay} km car commute is a top emitter. Public transport cuts roughly ${Math.round(
-        (current - FACTORS.commutePerKm["public-transport"]) * 100
+        (current - FACTORS.commutePerKm["public-transport"]) * 100,
       )}% per km.`,
       estimatedSavingKg: Math.round(saving * 0.6),
       effort: "medium",
@@ -56,7 +58,9 @@ export function generateRecommendations(
       category: "home",
       title: "Explore rooftop solar (PM Surya Ghar subsidy)",
       detail: "India subsidises residential rooftop solar — it can offset most of your grid use.",
-      estimatedSavingKg: Math.round(input.monthlyElectricityKwh * 12 * FACTORS.gridKwh * FACTORS.solarOffset),
+      estimatedSavingKg: Math.round(
+        input.monthlyElectricityKwh * 12 * FACTORS.gridKwh * FACTORS.solarOffset,
+      ),
       effort: "ambitious",
     });
   }
@@ -68,7 +72,9 @@ export function generateRecommendations(
       category: "food",
       title: "Add 2 fully plant-based days each week",
       detail: "Indian vegetarian thalis are among the lowest-carbon meals in the world.",
-      estimatedSavingKg: Math.round((FACTORS.dietAnnual[input.diet] - FACTORS.dietAnnual["vegetarian"]) * 0.7 + 120),
+      estimatedSavingKg: Math.round(
+        (FACTORS.dietAnnual[input.diet] - FACTORS.dietAnnual["vegetarian"]) * 0.7 + 120,
+      ),
       effort: "easy",
     });
   }

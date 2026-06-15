@@ -13,6 +13,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db, isFirebaseConfigured } from "./firebase";
+import { COMMUNITY, STORAGE_KEYS } from "./constants";
 import type { CategoryBreakdown } from "@/types";
 
 export type PostCategory = keyof CategoryBreakdown | "general";
@@ -42,8 +43,8 @@ export interface CommunityStats {
   leaderboard: { name: string; co2: number; steps: number }[];
 }
 
-const LS_POSTS = "prithvi.community.posts";
-const POSTS_LIMIT = 200;
+const LS_POSTS = STORAGE_KEYS.communityPosts;
+const POSTS_LIMIT = COMMUNITY.postsLimit;
 
 // ── Demo-mode store (localStorage) — keeps the feature usable without Firebase
 function readLocal(): CommunityPost[] {
@@ -90,9 +91,9 @@ export function subscribePosts(cb: (posts: CommunityPost[]) => void): () => void
 
 export async function createPost(
   author: { uid: string; displayName: string },
-  input: NewPost
+  input: NewPost,
 ): Promise<void> {
-  const text = input.text.trim().slice(0, 1000);
+  const text = input.text.trim().slice(0, COMMUNITY.maxPostLength);
   if (!text) return;
   const co2 = Math.max(0, Math.min(100000, Math.round(input.co2SavedKg || 0)));
 
@@ -134,7 +135,7 @@ export async function toggleLike(post: CommunityPost, uid: string): Promise<void
   const posts = readLocal().map((p) =>
     p.id === post.id
       ? { ...p, likedBy: liked ? p.likedBy.filter((u) => u !== uid) : [...p.likedBy, uid] }
-      : p
+      : p,
   );
   writeLocal(posts);
   window.dispatchEvent(new StorageEvent("storage", { key: LS_POSTS }));
@@ -154,7 +155,8 @@ export function computeStats(posts: CommunityPost[]): CommunityStats {
   const contributors = new Set(posts.map((p) => p.authorId)).size;
 
   const catMap = new Map<PostCategory, number>();
-  for (const p of posts) catMap.set(p.category, (catMap.get(p.category) || 0) + (p.co2SavedKg || 0));
+  for (const p of posts)
+    catMap.set(p.category, (catMap.get(p.category) || 0) + (p.co2SavedKg || 0));
   const byCategory = [...catMap.entries()]
     .map(([category, value]) => ({ category, value }))
     .sort((a, b) => b.value - a.value);
@@ -166,7 +168,9 @@ export function computeStats(posts: CommunityPost[]): CommunityStats {
     cur.steps += 1;
     board.set(p.authorId, cur);
   }
-  const leaderboard = [...board.values()].sort((a, b) => b.co2 - a.co2 || b.steps - a.steps).slice(0, 5);
+  const leaderboard = [...board.values()]
+    .sort((a, b) => b.co2 - a.co2 || b.steps - a.steps)
+    .slice(0, 5);
 
   return { totalCo2Saved, contributors, steps: posts.length, byCategory, leaderboard };
 }

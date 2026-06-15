@@ -3,6 +3,7 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getFunctions } from "firebase/functions";
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
+import { FUNCTIONS_REGION } from "./constants";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -37,5 +38,5 @@ if (isFirebaseConfigured) {
 
 export const auth = app ? getAuth(app) : undefined;
 export const db = app ? getFirestore(app) : undefined;
-export const functions = app ? getFunctions(app, "asia-south1") : undefined;
+export const functions = app ? getFunctions(app, FUNCTIONS_REGION) : undefined;
 export const googleProvider = new GoogleAuthProvider();

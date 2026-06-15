@@ -1,10 +1,10 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context";
 import { Logo } from "@/components/Logo";
 
 function FullScreenLoader() {
   return (
-    <div className="grid min-h-dvh place-items-center bg-paper">
+    <div className="bg-paper grid min-h-dvh place-items-center">
       <div className="flex flex-col items-center gap-4">
         <Logo />
         <div className="h-1 w-32 overflow-hidden rounded-full bg-muted">

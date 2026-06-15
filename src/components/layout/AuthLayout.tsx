@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Leaf, ShieldCheck, TrendingDown } from "lucide-react";
 import { Logo } from "@/components/Logo";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context";
 
 const HIGHLIGHTS = [
   { icon: Leaf, text: "Personalised to Indian grid, diet and travel patterns" },
@@ -24,7 +24,7 @@ export function AuthLayout({
     <div className="grid min-h-dvh lg:grid-cols-2">
       {/* Brand panel */}
       <div className="relative hidden flex-col justify-between overflow-hidden bg-primary p-12 text-primary-foreground lg:flex">
-        <div className="absolute inset-0 bg-contour opacity-[0.5] mix-blend-soft-light" />
+        <div className="bg-contour absolute inset-0 opacity-[0.5] mix-blend-soft-light" />
         <div className="relative">
           <Logo className="[&_span]:text-primary-foreground" />
         </div>
@@ -33,7 +33,8 @@ export function AuthLayout({
             “What gets measured gets managed.”
           </p>
           <p className="mt-3 text-primary-foreground/70">
-            Every tonne counts. Prithvi turns your daily choices into a number you can actually move.
+            Every tonne counts. Prithvi turns your daily choices into a number you can actually
+            move.
           </p>
           <ul className="mt-10 space-y-4">
             {HIGHLIGHTS.map(({ icon: Icon, text }) => (
@@ -46,11 +47,13 @@ export function AuthLayout({
             ))}
           </ul>
         </div>
-        <p className="relative text-xs text-primary-foreground/50">Built for India · Hosted on Google Cloud</p>
+        <p className="relative text-xs text-primary-foreground/50">
+          Built for India · Hosted on Google Cloud
+        </p>
       </div>
 
       {/* Form panel */}
-      <div className="flex flex-col bg-paper">
+      <div className="bg-paper flex flex-col">
         <div className="flex items-center justify-between p-6 lg:hidden">
           <Logo />
         </div>
@@ -60,8 +63,9 @@ export function AuthLayout({
             <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>
             {demoMode && (
               <div className="mt-5 rounded-md border border-primary/25 bg-primary/[0.06] px-3.5 py-2.5 text-xs leading-relaxed text-foreground/80">
-                <span className="font-semibold text-primary">Demo mode.</span> No Firebase keys detected — accounts are
-                saved locally in this browser so you can explore the full app.
+                <span className="font-semibold text-primary">Demo mode.</span> No Firebase keys
+                detected — accounts are saved locally in this browser so you can explore the full
+                app.
               </div>
             )}
             <div className="mt-6">{children}</div>

@@ -1,6 +1,17 @@
 import { useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { Home, Car, Utensils, ShoppingBag, Upload, Loader2, Gauge, Sparkles, CheckCircle2, AlertCircle } from "lucide-react";
+import {
+  Home,
+  Car,
+  Utensils,
+  ShoppingBag,
+  Upload,
+  Loader2,
+  Gauge,
+  Sparkles,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,10 +19,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/context/AuthContext";
-import { computeFootprint, EMPTY_LIFESTYLE, CATEGORY_META, INDIA_PER_CAPITA_KG } from "@/lib/emissions";
+import { useAuth } from "@/context/auth-context";
+import {
+  computeFootprint,
+  EMPTY_LIFESTYLE,
+  CATEGORY_META,
+  INDIA_PER_CAPITA_KG,
+} from "@/lib/emissions";
 import { registerActivity } from "@/lib/gamification";
 import { extractBillData, isBillScanAvailable } from "@/lib/gemini";
+import { COMMUNITY } from "@/lib/constants";
 import { cn, formatCO2 } from "@/lib/utils";
 import type { CommuteMode, DietType, LifestyleInput } from "@/types";
 
@@ -65,8 +82,20 @@ export default function Track() {
         <div className="space-y-6">
           <SectionCard icon={Home} title="Home energy">
             <BillScan onScanned={(kwh) => set("monthlyElectricityKwh", kwh)} />
-            <NumberField label="Monthly electricity" unit="kWh" value={form.monthlyElectricityKwh} onChange={(v) => set("monthlyElectricityKwh", v)} hint="Check your last bill — average urban home ≈ 250 kWh." />
-            <NumberField label="LPG cylinders per month" unit="cyl" step={0.5} value={form.lpgCylindersPerMonth} onChange={(v) => set("lpgCylindersPerMonth", v)} />
+            <NumberField
+              label="Monthly electricity"
+              unit="kWh"
+              value={form.monthlyElectricityKwh}
+              onChange={(v) => set("monthlyElectricityKwh", v)}
+              hint="Check your last bill — average urban home ≈ 250 kWh."
+            />
+            <NumberField
+              label="LPG cylinders per month"
+              unit="cyl"
+              step={0.5}
+              value={form.lpgCylindersPerMonth}
+              onChange={(v) => set("lpgCylindersPerMonth", v)}
+            />
             <div className="space-y-1.5">
               <Label>Rooftop solar?</Label>
               <Toggle value={form.hasSolar} onChange={(v) => set("hasSolar", v)} />
@@ -76,29 +105,72 @@ export default function Track() {
           <SectionCard icon={Car} title="Mobility">
             <div className="space-y-1.5">
               <Label htmlFor="commuteMode">Main commute mode</Label>
-              <Select id="commuteMode" value={form.commuteMode} onChange={(e) => set("commuteMode", e.target.value as CommuteMode)}>
-                {COMMUTE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              <Select
+                id="commuteMode"
+                value={form.commuteMode}
+                onChange={(e) => set("commuteMode", e.target.value as CommuteMode)}
+              >
+                {COMMUTE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
               </Select>
             </div>
-            <NumberField label="Commute distance" unit="km/day" value={form.commuteKmPerDay} onChange={(v) => set("commuteKmPerDay", v)} />
+            <NumberField
+              label="Commute distance"
+              unit="km/day"
+              value={form.commuteKmPerDay}
+              onChange={(v) => set("commuteKmPerDay", v)}
+            />
             <div className="grid grid-cols-2 gap-4">
-              <NumberField label="Domestic flights" unit="/yr" value={form.flightsShortHaulPerYear} onChange={(v) => set("flightsShortHaulPerYear", v)} />
-              <NumberField label="International flights" unit="/yr" value={form.flightsLongHaulPerYear} onChange={(v) => set("flightsLongHaulPerYear", v)} />
+              <NumberField
+                label="Domestic flights"
+                unit="/yr"
+                value={form.flightsShortHaulPerYear}
+                onChange={(v) => set("flightsShortHaulPerYear", v)}
+              />
+              <NumberField
+                label="International flights"
+                unit="/yr"
+                value={form.flightsLongHaulPerYear}
+                onChange={(v) => set("flightsLongHaulPerYear", v)}
+              />
             </div>
           </SectionCard>
 
           <SectionCard icon={Utensils} title="Food">
             <div className="space-y-1.5">
               <Label htmlFor="diet">Your diet</Label>
-              <Select id="diet" value={form.diet} onChange={(e) => set("diet", e.target.value as DietType)}>
-                {DIET_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              <Select
+                id="diet"
+                value={form.diet}
+                onChange={(e) => set("diet", e.target.value as DietType)}
+              >
+                {DIET_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
               </Select>
             </div>
-            <NumberField label="Meals out / ordered in" unit="/week" value={form.dineOutPerWeek} onChange={(v) => set("dineOutPerWeek", v)} />
+            <NumberField
+              label="Meals out / ordered in"
+              unit="/week"
+              value={form.dineOutPerWeek}
+              onChange={(v) => set("dineOutPerWeek", v)}
+            />
           </SectionCard>
 
           <SectionCard icon={ShoppingBag} title="Goods & shopping">
-            <NumberField label="Discretionary spend" unit="₹/month" step={500} value={form.shoppingSpendPerMonth} onChange={(v) => set("shoppingSpendPerMonth", v)} hint="Clothes, electronics, household goods — not rent or groceries." />
+            <NumberField
+              label="Discretionary spend"
+              unit="₹/month"
+              step={500}
+              value={form.shoppingSpendPerMonth}
+              onChange={(v) => set("shoppingSpendPerMonth", v)}
+              hint="Clothes, electronics, household goods — not rent or groceries."
+            />
           </SectionCard>
         </div>
 
@@ -110,7 +182,7 @@ export default function Track() {
           </CardHeader>
           <CardContent>
             <div aria-live="polite">
-              <p className="font-display text-4xl font-semibold tabular">{formatCO2(live.total)}</p>
+              <p className="tabular font-display text-4xl font-semibold">{formatCO2(live.total)}</p>
               <p className="text-sm text-muted-foreground">CO₂e per year</p>
             </div>
 
@@ -131,7 +203,10 @@ export default function Track() {
                       <span className="tabular font-medium">{formatCO2(value)}</span>
                     </div>
                     <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: CATEGORY_META[key].color }} />
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${pct}%`, background: CATEGORY_META[key].color }}
+                      />
                     </div>
                   </div>
                 );
@@ -223,9 +298,9 @@ function BillScan({ onScanned }: { onScanned: (kwh: number) => void }) {
       setMessage("Please choose an image (JPG or PNG).");
       return;
     }
-    if (file.size > 4 * 1024 * 1024) {
+    if (file.size > COMMUNITY.maxBillSizeMb * 1024 * 1024) {
       setStatus("error");
-      setMessage("Image is too large — keep it under 4 MB.");
+      setMessage(`Image is too large — keep it under ${COMMUNITY.maxBillSizeMb} MB.`);
       return;
     }
     setStatus("scanning");
@@ -261,16 +336,36 @@ function BillScan({ onScanned }: { onScanned: (kwh: number) => void }) {
           "flex cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed px-4 py-3 text-sm font-medium transition-colors",
           status === "scanning"
             ? "border-primary/40 bg-primary/5 text-primary"
-            : "border-primary/30 bg-primary/[0.04] text-primary hover:bg-primary/10"
+            : "border-primary/30 bg-primary/[0.04] text-primary hover:bg-primary/10",
         )}
       >
-        {status === "scanning" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+        {status === "scanning" ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <Sparkles className="size-4" />
+        )}
         {status === "scanning" ? "Reading your bill…" : "Scan an electricity bill with AI"}
-        <input id="bill-upload" type="file" accept="image/*" className="sr-only" onChange={handleFile} disabled={status === "scanning"} />
+        <input
+          id="bill-upload"
+          type="file"
+          accept="image/*"
+          className="sr-only"
+          onChange={handleFile}
+          disabled={status === "scanning"}
+        />
       </label>
       {message && (
-        <p className={cn("flex items-center gap-1.5 text-xs", status === "done" ? "text-success" : "text-destructive")}>
-          {status === "done" ? <CheckCircle2 className="size-3.5" /> : <AlertCircle className="size-3.5" />}
+        <p
+          className={cn(
+            "flex items-center gap-1.5 text-xs",
+            status === "done" ? "text-success" : "text-destructive",
+          )}
+        >
+          {status === "done" ? (
+            <CheckCircle2 className="size-3.5" />
+          ) : (
+            <AlertCircle className="size-3.5" />
+          )}
           {message}
         </p>
       )}
@@ -291,7 +386,9 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
           onClick={() => onChange(o.v)}
           className={cn(
             "rounded px-5 py-1.5 text-sm font-medium transition-colors",
-            value === o.v ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            value === o.v
+              ? "bg-card text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground",
           )}
         >
           {o.label}

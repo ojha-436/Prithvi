@@ -1,12 +1,54 @@
 import type { GamificationState, Pledge } from "@/types";
 
-export const BADGES: { id: string; name: string; desc: string; threshold: number; metric: "points" | "co2" | "streak" }[] = [
-  { id: "first-step", name: "First Step", desc: "Logged your first footprint", threshold: 1, metric: "points" },
-  { id: "week-streak", name: "Consistent", desc: "7-day tracking streak", threshold: 7, metric: "streak" },
-  { id: "saver-100", name: "Century Saver", desc: "Saved 100 kg CO₂e", threshold: 100, metric: "co2" },
-  { id: "saver-500", name: "Climate Ally", desc: "Saved 500 kg CO₂e", threshold: 500, metric: "co2" },
-  { id: "saver-1000", name: "Carbon Warrior", desc: "Saved 1 tonne CO₂e", threshold: 1000, metric: "co2" },
-  { id: "points-500", name: "Changemaker", desc: "Earned 500 points", threshold: 500, metric: "points" },
+export const BADGES: {
+  id: string;
+  name: string;
+  desc: string;
+  threshold: number;
+  metric: "points" | "co2" | "streak";
+}[] = [
+  {
+    id: "first-step",
+    name: "First Step",
+    desc: "Logged your first footprint",
+    threshold: 1,
+    metric: "points",
+  },
+  {
+    id: "week-streak",
+    name: "Consistent",
+    desc: "7-day tracking streak",
+    threshold: 7,
+    metric: "streak",
+  },
+  {
+    id: "saver-100",
+    name: "Century Saver",
+    desc: "Saved 100 kg CO₂e",
+    threshold: 100,
+    metric: "co2",
+  },
+  {
+    id: "saver-500",
+    name: "Climate Ally",
+    desc: "Saved 500 kg CO₂e",
+    threshold: 500,
+    metric: "co2",
+  },
+  {
+    id: "saver-1000",
+    name: "Carbon Warrior",
+    desc: "Saved 1 tonne CO₂e",
+    threshold: 1000,
+    metric: "co2",
+  },
+  {
+    id: "points-500",
+    name: "Changemaker",
+    desc: "Earned 500 points",
+    threshold: 500,
+    metric: "points",
+  },
 ];
 
 export function initGameState(): GamificationState {
@@ -55,7 +97,12 @@ export function completePledge(state: GamificationState, pledge: Pledge): Gamifi
 export function refreshBadges(state: GamificationState): GamificationState {
   const earned = new Set(state.badges);
   for (const b of BADGES) {
-    const value = b.metric === "points" ? state.points : b.metric === "co2" ? state.co2SavedKg : state.streakDays;
+    const value =
+      b.metric === "points"
+        ? state.points
+        : b.metric === "co2"
+          ? state.co2SavedKg
+          : state.streakDays;
     if (value >= b.threshold) earned.add(b.id);
   }
   return { ...state, badges: Array.from(earned) };

@@ -7,14 +7,33 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context";
 import type { HomeType } from "@/types";
 
 const STATES = [
-  "Andhra Pradesh", "Assam", "Bihar", "Chhattisgarh", "Delhi", "Goa", "Gujarat", "Haryana",
-  "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra",
-  "Odisha", "Punjab", "Rajasthan", "Tamil Nadu", "Telangana", "Uttar Pradesh", "Uttarakhand",
-  "West Bengal", "Other",
+  "Andhra Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Delhi",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Tamil Nadu",
+  "Telangana",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  "Other",
 ];
 
 const AGE_BANDS = ["Under 18", "18–24", "25–34", "35–44", "45–54", "55+"];
@@ -72,7 +91,8 @@ export default function Profile() {
           <CardContent className="flex items-center gap-3 py-4 text-sm">
             <Sparkles className="size-5 shrink-0 text-primary" />
             <span className="text-muted-foreground">
-              Step 1 of 2 — after this you'll answer a quick lifestyle questionnaire to generate your footprint.
+              Step 1 of 2 — after this you'll answer a quick lifestyle questionnaire to generate
+              your footprint.
             </span>
           </CardContent>
         </Card>
@@ -87,17 +107,36 @@ export default function Profile() {
             </CardHeader>
             <CardContent className="space-y-4">
               <Field id="displayName" label="Full name" required>
-                <Input id="displayName" value={form.displayName} onChange={(e) => set("displayName", e.target.value)} required placeholder="Aarav Sharma" />
+                <Input
+                  id="displayName"
+                  value={form.displayName}
+                  onChange={(e) => set("displayName", e.target.value)}
+                  required
+                  placeholder="Aarav Sharma"
+                />
               </Field>
               <div className="grid grid-cols-2 gap-4">
                 <Field id="ageBand" label="Age group">
-                  <Select id="ageBand" value={form.ageBand} onChange={(e) => set("ageBand", e.target.value)}>
+                  <Select
+                    id="ageBand"
+                    value={form.ageBand}
+                    onChange={(e) => set("ageBand", e.target.value)}
+                  >
                     <option value="">Select</option>
-                    {AGE_BANDS.map((a) => <option key={a} value={a}>{a}</option>)}
+                    {AGE_BANDS.map((a) => (
+                      <option key={a} value={a}>
+                        {a}
+                      </option>
+                    ))}
                   </Select>
                 </Field>
                 <Field id="occupation" label="Occupation">
-                  <Input id="occupation" value={form.occupation} onChange={(e) => set("occupation", e.target.value)} placeholder="e.g. Student" />
+                  <Input
+                    id="occupation"
+                    value={form.occupation}
+                    onChange={(e) => set("occupation", e.target.value)}
+                    placeholder="e.g. Student"
+                  />
                 </Field>
               </div>
             </CardContent>
@@ -111,21 +150,48 @@ export default function Profile() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <Field id="city" label="City / town" required>
-                  <Input id="city" value={form.city} onChange={(e) => set("city", e.target.value)} required placeholder="Pune" />
+                  <Input
+                    id="city"
+                    value={form.city}
+                    onChange={(e) => set("city", e.target.value)}
+                    required
+                    placeholder="Pune"
+                  />
                 </Field>
                 <Field id="state" label="State" required>
-                  <Select id="state" value={form.state} onChange={(e) => set("state", e.target.value)} required>
+                  <Select
+                    id="state"
+                    value={form.state}
+                    onChange={(e) => set("state", e.target.value)}
+                    required
+                  >
                     <option value="">Select state</option>
-                    {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    {STATES.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
                   </Select>
                 </Field>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <Field id="householdSize" label="People in household" required>
-                  <Input id="householdSize" type="number" min={1} max={20} value={form.householdSize} onChange={(e) => set("householdSize", Number(e.target.value))} required />
+                  <Input
+                    id="householdSize"
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={form.householdSize}
+                    onChange={(e) => set("householdSize", Number(e.target.value))}
+                    required
+                  />
                 </Field>
                 <Field id="homeType" label="Home type">
-                  <Select id="homeType" value={form.homeType} onChange={(e) => set("homeType", e.target.value as HomeType)}>
+                  <Select
+                    id="homeType"
+                    value={form.homeType}
+                    onChange={(e) => set("homeType", e.target.value as HomeType)}
+                  >
                     <option value="apartment">Apartment / flat</option>
                     <option value="independent">Independent house</option>
                   </Select>

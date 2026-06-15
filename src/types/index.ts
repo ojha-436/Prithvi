@@ -1,5 +1,11 @@
 export type DietType = "vegan" | "vegetarian" | "eggetarian" | "occasional-meat" | "regular-meat";
-export type CommuteMode = "walk-cycle" | "public-transport" | "two-wheeler" | "car-petrol" | "car-diesel" | "car-ev";
+export type CommuteMode =
+  | "walk-cycle"
+  | "public-transport"
+  | "two-wheeler"
+  | "car-petrol"
+  | "car-diesel"
+  | "car-ev";
 export type HomeType = "apartment" | "independent";
 
 /** Personal profile captured on the onboarding "Personal details" page. */

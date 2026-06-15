@@ -1,13 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
@@ -19,34 +10,20 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db, googleProvider, isFirebaseConfigured } from "@/lib/firebase";
+import { STORAGE_KEYS } from "@/lib/constants";
 import { initGameState } from "@/lib/gamification";
-import type { GamificationState, LifestyleInput, FootprintResult, UserData, UserProfile } from "@/types";
+import { AuthContext, type AuthContextValue, type SessionUser } from "./auth-context";
+import type {
+  GamificationState,
+  LifestyleInput,
+  FootprintResult,
+  UserData,
+  UserProfile,
+} from "@/types";
 
-interface SessionUser {
-  uid: string;
-  email: string;
-  displayName: string;
-}
-
-interface AuthContextValue {
-  user: SessionUser | null;
-  userData: UserData | null;
-  loading: boolean;
-  demoMode: boolean;
-  signUp: (email: string, password: string, name: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
-  signOut: () => Promise<void>;
-  saveProfile: (profile: Partial<UserProfile>) => Promise<void>;
-  saveFootprint: (lifestyle: LifestyleInput, footprint: FootprintResult) => Promise<void>;
-  updateGame: (game: GamificationState) => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
-
-const LS_USERS = "prithvi.demo.users";
-const LS_SESSION = "prithvi.demo.session";
-const dataKey = (uid: string) => `prithvi.data.${uid}`;
+const LS_USERS = STORAGE_KEYS.demoUsers;
+const LS_SESSION = STORAGE_KEYS.demoSession;
+const dataKey = STORAGE_KEYS.userData;
 
 function baseUserData(user: SessionUser): UserData {
   return {
@@ -115,8 +92,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return onAuthStateChanged(auth, (fb: FbUser | null) => {
         void hydrate(
           fb
-            ? { uid: fb.uid, email: fb.email ?? "", displayName: fb.displayName ?? fb.email?.split("@")[0] ?? "Friend" }
-            : null
+            ? {
+                uid: fb.uid,
+                email: fb.email ?? "",
+                displayName: fb.displayName ?? fb.email?.split("@")[0] ?? "Friend",
+              }
+            : null,
         );
       });
     }
@@ -126,35 +107,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [hydrate]);
 
   // ── Auth methods ──────────────────────────────────────────────────────────
-  const signUp = useCallback(async (email: string, password: string, name: string) => {
-    if (isFirebaseConfigured && auth) {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(cred.user, { displayName: name });
-      await hydrate({ uid: cred.user.uid, email, displayName: name });
-      return;
-    }
-    const users = JSON.parse(localStorage.getItem(LS_USERS) || "{}");
-    if (users[email]) throw new Error("An account with this email already exists.");
-    const uid = `demo-${Date.now()}`;
-    users[email] = { uid, password, name };
-    localStorage.setItem(LS_USERS, JSON.stringify(users));
-    const session = { uid, email, displayName: name };
-    localStorage.setItem(LS_SESSION, JSON.stringify(session));
-    await hydrate(session);
-  }, [hydrate]);
+  const signUp = useCallback(
+    async (email: string, password: string, name: string) => {
+      if (isFirebaseConfigured && auth) {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(cred.user, { displayName: name });
+        await hydrate({ uid: cred.user.uid, email, displayName: name });
+        return;
+      }
+      const users = JSON.parse(localStorage.getItem(LS_USERS) || "{}");
+      if (users[email]) throw new Error("An account with this email already exists.");
+      const uid = `demo-${Date.now()}`;
+      users[email] = { uid, password, name };
+      localStorage.setItem(LS_USERS, JSON.stringify(users));
+      const session = { uid, email, displayName: name };
+      localStorage.setItem(LS_SESSION, JSON.stringify(session));
+      await hydrate(session);
+    },
+    [hydrate],
+  );
 
-  const signIn = useCallback(async (email: string, password: string) => {
-    if (isFirebaseConfigured && auth) {
-      await signInWithEmailAndPassword(auth, email, password);
-      return;
-    }
-    const users = JSON.parse(localStorage.getItem(LS_USERS) || "{}");
-    const record = users[email];
-    if (!record || record.password !== password) throw new Error("Invalid email or password.");
-    const session = { uid: record.uid, email, displayName: record.name };
-    localStorage.setItem(LS_SESSION, JSON.stringify(session));
-    await hydrate(session);
-  }, [hydrate]);
+  const signIn = useCallback(
+    async (email: string, password: string) => {
+      if (isFirebaseConfigured && auth) {
+        await signInWithEmailAndPassword(auth, email, password);
+        return;
+      }
+      const users = JSON.parse(localStorage.getItem(LS_USERS) || "{}");
+      const record = users[email];
+      if (!record || record.password !== password) throw new Error("Invalid email or password.");
+      const session = { uid: record.uid, email, displayName: record.name };
+      localStorage.setItem(LS_SESSION, JSON.stringify(session));
+      await hydrate(session);
+    },
+    [hydrate],
+  );
 
   const signInWithGoogle = useCallback(async () => {
     if (isFirebaseConfigured && auth) {
@@ -200,21 +187,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         profile: { ...prev.profile, ...profile, onboarded: true },
       }));
     },
-    [commit]
+    [commit],
   );
 
   const saveFootprint = useCallback(
     async (lifestyle: LifestyleInput, footprint: FootprintResult) => {
       await commit((prev) => ({ ...prev, lifestyle, footprint }));
     },
-    [commit]
+    [commit],
   );
 
   const updateGame = useCallback(
     async (game: GamificationState) => {
       await commit((prev) => ({ ...prev, game }));
     },
-    [commit]
+    [commit],
   );
 
   const value = useMemo<AuthContextValue>(
@@ -231,14 +218,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       saveFootprint,
       updateGame,
     }),
-    [user, userData, loading, demoMode, signUp, signIn, signInWithGoogle, signOut, saveProfile, saveFootprint, updateGame]
+    [
+      user,
+      userData,
+      loading,
+      demoMode,
+      signUp,
+      signIn,
+      signInWithGoogle,
+      signOut,
+      saveProfile,
+      saveFootprint,
+      updateGame,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
 }

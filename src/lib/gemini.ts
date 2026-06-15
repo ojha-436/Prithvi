@@ -55,7 +55,11 @@ export async function extractBillData(file: File): Promise<BillScan> {
   return { monthlyKwh: billToMonthlyKwh(raw.kwh, raw.periodMonths), raw };
 }
 
-async function callAdvise(kind: "insight" | "recommend", footprint: FootprintResult, lifestyle?: LifestyleInput) {
+async function callAdvise(
+  kind: "insight" | "recommend",
+  footprint: FootprintResult,
+  lifestyle?: LifestyleInput,
+) {
   const fn = httpsCallable(functions!, "geminiAdvise");
   const res = await fn({ kind, footprint, lifestyle });
   return res.data as { text?: string; recommendations?: Recommendation[] };
@@ -63,14 +67,16 @@ async function callAdvise(kind: "insight" | "recommend", footprint: FootprintRes
 
 export async function getRecommendations(
   input: LifestyleInput,
-  footprint: FootprintResult
+  footprint: FootprintResult,
 ): Promise<Recommendation[]> {
   const baseline = generateRecommendations(input, footprint);
 
   if (viaFunctions) {
     try {
       const data = await callAdvise("recommend", footprint, input);
-      const cleaned = (data.recommendations ?? []).filter((r) => CATEGORY_META[r.category] && r.title);
+      const cleaned = (data.recommendations ?? []).filter(
+        (r) => CATEGORY_META[r.category] && r.title,
+      );
       return cleaned.length ? cleaned : baseline;
     } catch (err) {
       console.warn("Gemini function failed, using engine fallback:", err);
@@ -89,7 +95,10 @@ Our engine already suggested: ${baseline.map((r) => r.title).join("; ")}.
 Return 5 concrete, India-specific actions ranked by impact. Respond with ONLY a JSON array of objects:
 [{"category":"home|travel|food|goods","title":"<short>","detail":"<one sentence, India-relevant>","estimatedSavingKg":<number>,"effort":"easy|medium|ambitious"}]`;
     const result = await model.generateContent(prompt);
-    const text = result.response.text().replace(/```json|```/g, "").trim();
+    const text = result.response
+      .text()
+      .replace(/```json|```/g, "")
+      .trim();
     const parsed = JSON.parse(text) as Array<Omit<Recommendation, "id" | "source">>;
     const cleaned = parsed
       .filter((r) => CATEGORY_META[r.category] && r.title)
@@ -121,7 +130,7 @@ export async function getInsight(footprint: FootprintResult): Promise<string> {
   try {
     const model = client.getGenerativeModel({ model: modelName });
     const prompt = `In 2 warm, motivating sentences (no markdown), summarise this Indian user's yearly carbon footprint of ${formatCO2(
-      footprint.total
+      footprint.total,
     )}. Breakdown kg/yr: home ${footprint.breakdown.home}, travel ${footprint.breakdown.travel}, food ${footprint.breakdown.food}, goods ${footprint.breakdown.goods}. India average is ${footprint.perCapitaIndia} kg.`;
     const result = await model.generateContent(prompt);
     return result.response.text().trim() || fallback;

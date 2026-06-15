@@ -16,7 +16,13 @@ function isoOffset(days: number): string {
 describe("gamification", () => {
   it("initialises an empty state", () => {
     const s = initGameState();
-    expect(s).toMatchObject({ points: 0, streakDays: 0, co2SavedKg: 0, badges: [], completedPledges: [] });
+    expect(s).toMatchObject({
+      points: 0,
+      streakDays: 0,
+      co2SavedKg: 0,
+      badges: [],
+      completedPledges: [],
+    });
   });
 
   it("starts a streak and awards the first-step badge on first activity", () => {
@@ -33,7 +39,12 @@ describe("gamification", () => {
   });
 
   it("increments the streak on consecutive days", () => {
-    const yesterday = { ...initGameState(), lastActiveDate: isoOffset(-1), streakDays: 3, points: 10 };
+    const yesterday = {
+      ...initGameState(),
+      lastActiveDate: isoOffset(-1),
+      streakDays: 3,
+      points: 10,
+    };
     const next = registerActivity(yesterday);
     expect(next.streakDays).toBe(4);
     expect(next.points).toBe(15);

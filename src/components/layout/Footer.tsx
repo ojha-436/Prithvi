@@ -14,9 +14,21 @@ export function Footer() {
         <div>
           <h4 className="font-display text-sm font-semibold">Product</h4>
           <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
-            <li><a href="#how" className="hover:text-foreground">How it works</a></li>
-            <li><a href="#compare" className="hover:text-foreground">India vs world</a></li>
-            <li><a href="#learn" className="hover:text-foreground">Learn carbon basics</a></li>
+            <li>
+              <a href="#how" className="hover:text-foreground">
+                How it works
+              </a>
+            </li>
+            <li>
+              <a href="#compare" className="hover:text-foreground">
+                India vs world
+              </a>
+            </li>
+            <li>
+              <a href="#learn" className="hover:text-foreground">
+                Learn carbon basics
+              </a>
+            </li>
           </ul>
         </div>
         <div>

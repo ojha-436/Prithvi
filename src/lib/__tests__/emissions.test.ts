@@ -31,7 +31,9 @@ describe("computeFootprint", () => {
     const without = computeFootprint(base);
     expect(withSolar.breakdown.home).toBeLessThan(without.breakdown.home);
     // 60% offset → 40% remains
-    expect(withSolar.breakdown.home).toBe(Math.round(without.breakdown.home * (1 - FACTORS.solarOffset)));
+    expect(withSolar.breakdown.home).toBe(
+      Math.round(without.breakdown.home * (1 - FACTORS.solarOffset)),
+    );
   });
 
   it("keeps total equal to the sum of categories", () => {

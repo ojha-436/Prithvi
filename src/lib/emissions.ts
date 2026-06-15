@@ -35,7 +35,10 @@ export const INDIA_PER_CAPITA_KG = 2000;
 
 export function computeFootprint(input: LifestyleInput): FootprintResult {
   const electricity =
-    input.monthlyElectricityKwh * 12 * FACTORS.gridKwh * (input.hasSolar ? 1 - FACTORS.solarOffset : 1);
+    input.monthlyElectricityKwh *
+    12 *
+    FACTORS.gridKwh *
+    (input.hasSolar ? 1 - FACTORS.solarOffset : 1);
   const lpg = input.lpgCylindersPerMonth * 12 * FACTORS.lpgCylinder;
   const home = electricity + lpg;
 

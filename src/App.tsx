@@ -17,7 +17,7 @@ const Community = lazy(() => import("@/pages/Community"));
 
 function RouteFallback() {
   return (
-    <div className="grid min-h-dvh place-items-center bg-paper" role="status" aria-live="polite">
+    <div className="bg-paper grid min-h-dvh place-items-center" role="status" aria-live="polite">
       <div className="h-1 w-32 overflow-hidden rounded-full bg-muted">
         <div className="h-full w-1/2 animate-shimmer rounded-full bg-primary" />
       </div>

@@ -8,6 +8,6 @@ export const Label = forwardRef<HTMLLabelElement, LabelHTMLAttributes<HTMLLabelE
       className={cn("text-sm font-medium leading-none text-foreground/90", className)}
       {...props}
     />
-  )
+  ),
 );
 Label.displayName = "Label";

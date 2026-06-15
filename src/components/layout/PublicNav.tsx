@@ -5,7 +5,7 @@ import { Logo } from "@/components/Logo";
 import { SkipLink } from "@/components/SkipLink";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
@@ -32,7 +32,9 @@ export function PublicNav() {
     <header
       className={cn(
         "fixed inset-x-0 top-0 z-50 transition-all duration-300",
-        scrolled ? "border-b border-border bg-background/85 backdrop-blur-md" : "border-b border-transparent"
+        scrolled
+          ? "border-b border-border bg-background/85 backdrop-blur-md"
+          : "border-b border-transparent",
       )}
     >
       <SkipLink />
@@ -85,7 +87,11 @@ export function PublicNav() {
               </a>
             ))}
             <div className="mt-2 flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={() => navigate(user ? "/app/dashboard" : "/login")}>
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => navigate(user ? "/app/dashboard" : "/login")}
+              >
                 {user ? "Dashboard" : "Log in"}
               </Button>
               {!user && (

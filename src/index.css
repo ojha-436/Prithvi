@@ -86,10 +86,13 @@
     text-rendering: optimizeLegibility;
   }
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background font-sans text-foreground;
     font-feature-settings: "ss01", "cv01";
   }
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     @apply font-display;
     font-optical-sizing: auto;
     letter-spacing: -0.015em;

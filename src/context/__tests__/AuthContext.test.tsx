@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { AuthProvider } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context";
 import { computeFootprint, EMPTY_LIFESTYLE } from "@/lib/emissions";
 import { registerActivity } from "@/lib/gamification";
 

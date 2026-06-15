@@ -12,14 +12,23 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { ArrowRight, Sparkles, Leaf, Flame, TrendingDown, Trophy, ClipboardList } from "lucide-react";
+import {
+  ArrowRight,
+  Sparkles,
+  Leaf,
+  Flame,
+  TrendingDown,
+  Trophy,
+  ClipboardList,
+} from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
+import { StatCard } from "@/components/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context";
 import { CATEGORY_META } from "@/lib/emissions";
 import { getInsight, getRecommendations, isGeminiConfigured } from "@/lib/gemini";
 import { BADGES, nextBadge } from "@/lib/gamification";
@@ -38,7 +47,9 @@ export default function Dashboard() {
     let active = true;
     if (footprint && userData?.lifestyle) {
       getInsight(footprint).then((t) => active && setInsight(t));
-      getRecommendations(userData.lifestyle, footprint).then((r) => active && setTopRec(r[0] ?? null));
+      getRecommendations(userData.lifestyle, footprint).then(
+        (r) => active && setTopRec(r[0] ?? null),
+      );
     }
     return () => {
       active = false;
@@ -54,7 +65,7 @@ export default function Dashboard() {
             color: CATEGORY_META[k].color,
           }))
         : [],
-    [footprint]
+    [footprint],
   );
 
   const benchmark = useMemo(
@@ -64,7 +75,7 @@ export default function Dashboard() {
       { name: "Japan", t: 8.5, you: false },
       { name: "USA", t: 14.4, you: false },
     ],
-    [footprint]
+    [footprint],
   );
 
   if (!footprint || !game) return <EmptyState />;
@@ -72,8 +83,11 @@ export default function Dashboard() {
   const vsIndia = Math.round((footprint.total / footprint.perCapitaIndia) * 100);
   const next = nextBadge(game);
   const nextProgress = next
-    ? (next.metric === "co2" ? game.co2SavedKg : next.metric === "points" ? game.points : game.streakDays) /
-      next.threshold
+    ? (next.metric === "co2"
+        ? game.co2SavedKg
+        : next.metric === "points"
+          ? game.points
+          : game.streakDays) / next.threshold
     : 1;
 
   return (
@@ -117,16 +131,38 @@ export default function Dashboard() {
 
       {/* Stat grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={Leaf} label="Annual footprint" value={formatCO2(footprint.total)} sub="CO₂e per year" tone="primary" />
         <StatCard
+          layout="stacked"
+          icon={Leaf}
+          label="Annual footprint"
+          value={formatCO2(footprint.total)}
+          sub="CO₂e per year"
+          tone="primary"
+        />
+        <StatCard
+          layout="stacked"
           icon={TrendingDown}
           label="vs India average"
           value={`${vsIndia}%`}
           sub={vsIndia > 100 ? "Above average" : "Below average"}
           tone={vsIndia > 100 ? "accent" : "success"}
         />
-        <StatCard icon={Flame} label="CO₂ saved" value={formatCO2(game.co2SavedKg)} sub="from your pledges" tone="success" />
-        <StatCard icon={Trophy} label="Points" value={formatNumber(game.points)} sub={`${game.streakDays}-day streak`} tone="primary" />
+        <StatCard
+          layout="stacked"
+          icon={Flame}
+          label="CO₂ saved"
+          value={formatCO2(game.co2SavedKg)}
+          sub="from your pledges"
+          tone="success"
+        />
+        <StatCard
+          layout="stacked"
+          icon={Trophy}
+          label="Points"
+          value={formatNumber(game.points)}
+          sub={`${game.streakDays}-day streak`}
+          tone="primary"
+        />
       </div>
 
       {/* Charts */}
@@ -146,14 +182,26 @@ export default function Dashboard() {
               >
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={breakdownData} dataKey="value" nameKey="name" innerRadius={56} outerRadius={92} paddingAngle={2} stroke="none">
-                      {breakdownData.map((d) => <Cell key={d.name} fill={d.color} />)}
+                    <Pie
+                      data={breakdownData}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={56}
+                      outerRadius={92}
+                      paddingAngle={2}
+                      stroke="none"
+                    >
+                      {breakdownData.map((d) => (
+                        <Cell key={d.name} fill={d.color} />
+                      ))}
                     </Pie>
                     <Tooltip formatter={(v: number) => [formatCO2(v), ""]} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="font-display text-2xl font-semibold tabular">{formatCO2(footprint.total)}</span>
+                  <span className="tabular font-display text-2xl font-semibold">
+                    {formatCO2(footprint.total)}
+                  </span>
                   <span className="text-xs text-muted-foreground">total / yr</span>
                 </div>
               </div>
@@ -178,19 +226,38 @@ export default function Dashboard() {
             <div
               className="h-56"
               role="img"
-              aria-label={`Bar chart comparing your annual footprint of ${(footprint.total / 1000).toFixed(
-                2
+              aria-label={`Bar chart comparing your annual footprint of ${(
+                footprint.total / 1000
+              ).toFixed(
+                2,
               )} tonnes against India average 2 tonnes, Japan 8.5, USA 14.4, and the 1.5 degree target of 2.3 tonnes.`}
             >
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={benchmark} margin={{ top: 8 }}>
                   <XAxis dataKey="name" tickLine={false} axisLine={false} />
                   <YAxis tickLine={false} axisLine={false} unit=" t" width={36} />
-                  <Tooltip cursor={{ fill: "hsl(var(--muted))" }} formatter={(v: number) => [`${v} t CO₂`, "Per yr"]} />
-                  <ReferenceLine y={SUSTAINABLE_TARGET_TONNES} stroke="#C9772B" strokeDasharray="5 4" label={{ value: "1.5°C target", fontSize: 11, fill: "#C9772B", position: "insideTopRight" }} />
+                  <Tooltip
+                    cursor={{ fill: "hsl(var(--muted))" }}
+                    formatter={(v: number) => [`${v} t CO₂`, "Per yr"]}
+                  />
+                  <ReferenceLine
+                    y={SUSTAINABLE_TARGET_TONNES}
+                    stroke="#C9772B"
+                    strokeDasharray="5 4"
+                    label={{
+                      value: "1.5°C target",
+                      fontSize: 11,
+                      fill: "#C9772B",
+                      position: "insideTopRight",
+                    }}
+                  />
                   <Bar dataKey="t" radius={[6, 6, 0, 0]} barSize={44}>
                     {benchmark.map((b, i) => (
-                      <Cell key={i} fill={b.you ? "#15603F" : "hsl(var(--muted-foreground))"} fillOpacity={b.you ? 1 : 0.4} />
+                      <Cell
+                        key={i}
+                        fill={b.you ? "#15603F" : "hsl(var(--muted-foreground))"}
+                        fillOpacity={b.you ? 1 : 0.4}
+                      />
                     ))}
                   </Bar>
                 </BarChart>
@@ -209,12 +276,20 @@ export default function Dashboard() {
           <CardContent className="flex flex-1 flex-col">
             {topRec ? (
               <div className="flex flex-1 flex-col">
-                <Badge variant="accent" className="w-fit capitalize">{topRec.category}</Badge>
+                <Badge variant="accent" className="w-fit capitalize">
+                  {topRec.category}
+                </Badge>
                 <h3 className="mt-3 font-display text-lg font-semibold">{topRec.title}</h3>
-                <p className="mt-1.5 flex-1 text-sm leading-relaxed text-muted-foreground">{topRec.detail}</p>
+                <p className="mt-1.5 flex-1 text-sm leading-relaxed text-muted-foreground">
+                  {topRec.detail}
+                </p>
                 <div className="mt-4 flex items-center justify-between">
                   <span className="text-sm">
-                    Saves ~<strong className="tabular text-success">{formatCO2(topRec.estimatedSavingKg)}</strong>/yr
+                    Saves ~
+                    <strong className="tabular text-success">
+                      {formatCO2(topRec.estimatedSavingKg)}
+                    </strong>
+                    /yr
                   </span>
                   <Link to="/app/insights">
                     <Button size="sm">
@@ -256,7 +331,9 @@ export default function Dashboard() {
                     title={b.desc}
                     className={cn(
                       "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
-                      earned ? "border-primary/30 bg-primary/10 text-primary" : "border-border bg-muted text-muted-foreground/60"
+                      earned
+                        ? "border-primary/30 bg-primary/10 text-primary"
+                        : "border-border bg-muted text-muted-foreground/60",
                     )}
                   >
                     <Trophy className="size-3.5" /> {b.name}
@@ -271,42 +348,13 @@ export default function Dashboard() {
   );
 }
 
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  sub,
-  tone,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
-  sub: string;
-  tone: "primary" | "accent" | "success";
-}) {
-  const toneMap = {
-    primary: "bg-primary/10 text-primary",
-    accent: "bg-accent/12 text-accent",
-    success: "bg-success/12 text-success",
-  };
-  return (
-    <Card className="p-5">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{label}</p>
-        <span className={cn("grid size-8 place-items-center rounded-lg", toneMap[tone])}>
-          <Icon className="size-4" />
-        </span>
-      </div>
-      <p className="mt-3 font-display text-2xl font-semibold tabular">{value}</p>
-      <p className="text-xs text-muted-foreground">{sub}</p>
-    </Card>
-  );
-}
-
 function EmptyState() {
   return (
     <div className="animate-fade-up">
-      <PageHeader title="Your dashboard" description="Once you log a footprint, your insights appear here." />
+      <PageHeader
+        title="Your dashboard"
+        description="Once you log a footprint, your insights appear here."
+      />
       <Card className="grid place-items-center py-20 text-center">
         <div className="max-w-sm">
           <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-primary/10 text-primary">
@@ -314,7 +362,8 @@ function EmptyState() {
           </span>
           <h3 className="mt-5 font-display text-xl font-semibold">Let's measure your footprint</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            Answer a short questionnaire and we'll calculate your yearly CO₂e, benchmark it, and suggest actions.
+            Answer a short questionnaire and we'll calculate your yearly CO₂e, benchmark it, and
+            suggest actions.
           </p>
           <Link to="/app/track">
             <Button className="mt-6" size="lg">

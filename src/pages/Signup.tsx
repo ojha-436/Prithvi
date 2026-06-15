@@ -1,12 +1,13 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { GoogleIcon } from "@/components/GoogleIcon";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context";
 
 export default function Signup() {
   const { signUp, signInWithGoogle, demoMode } = useAuth();
@@ -16,7 +17,6 @@ export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [show, setShow] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState<"email" | "google" | null>(null);
 
@@ -50,29 +50,52 @@ export default function Signup() {
   };
 
   return (
-    <AuthLayout title="Start your climate journey" subtitle="Create an account to measure and shrink your footprint.">
+    <AuthLayout
+      title="Start your climate journey"
+      subtitle="Create an account to measure and shrink your footprint."
+    >
       <form onSubmit={submit} className="space-y-4" noValidate>
         {error && (
-          <div role="alert" className="rounded-md border border-destructive/30 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">
+          <div
+            role="alert"
+            className="rounded-md border border-destructive/30 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive"
+          >
             {error}
           </div>
         )}
         <div className="space-y-1.5">
           <Label htmlFor="name">Full name</Label>
-          <Input id="name" autoComplete="name" placeholder="Aarav Sharma" required value={name} onChange={(e) => setName(e.target.value)} />
+          <Input
+            id="name"
+            autoComplete="name"
+            placeholder="Aarav Sharma"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" autoComplete="email" placeholder="you@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="password">Password</Label>
-          <div className="relative">
-            <Input id="password" type={show ? "text" : "password"} autoComplete="new-password" placeholder="At least 6 characters" required value={password} onChange={(e) => setPassword(e.target.value)} className="pr-10" />
-            <button type="button" onClick={() => setShow((s) => !s)} className="absolute right-1.5 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground" aria-label={show ? "Hide password" : "Show password"}>
-              {show ? <EyeOff className="size-[18px]" /> : <Eye className="size-[18px]" />}
-            </button>
-          </div>
+          <PasswordInput
+            id="password"
+            autoComplete="new-password"
+            placeholder="At least 6 characters"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </div>
         <Button type="submit" className="w-full" disabled={loading !== null}>
           {loading === "email" ? <Loader2 className="size-4 animate-spin" /> : null}
@@ -86,7 +109,11 @@ export default function Signup() {
             <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
           </div>
           <Button variant="outline" className="w-full" onClick={google} disabled={loading !== null}>
-            {loading === "google" ? <Loader2 className="size-4 animate-spin" /> : <GoogleIcon className="size-[18px]" />}
+            {loading === "google" ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <GoogleIcon className="size-[18px]" />
+            )}
             Continue with Google
           </Button>
         </>

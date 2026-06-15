@@ -18,7 +18,11 @@ describe("Button", () => {
 
   it("is non-interactive when disabled", async () => {
     const onClick = vi.fn();
-    render(<Button disabled onClick={onClick}>Nope</Button>);
+    render(
+      <Button disabled onClick={onClick}>
+        Nope
+      </Button>,
+    );
     await userEvent.click(screen.getByRole("button", { name: "Nope" }));
     expect(onClick).not.toHaveBeenCalled();
   });
@@ -38,7 +42,7 @@ describe("Login page", () => {
         <AuthProvider>
           <Login />
         </AuthProvider>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
   it("shows the welcome heading and email/password fields", () => {

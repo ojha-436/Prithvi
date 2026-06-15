@@ -16,7 +16,7 @@ describe("ProtectedRoute (authorization gate)", () => {
             <Route path="/login" element={<div>LOGIN PAGE</div>} />
           </Routes>
         </AuthProvider>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     // After auth resolves (demo mode, no session), the guard sends us to login.

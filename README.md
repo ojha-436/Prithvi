@@ -131,12 +131,16 @@ badges, pledges), formatting utils, plus component and authorization-gate (Prote
 
 ```
 src/
-  components/        UI primitives (shadcn-style), layout, charts helpers
-  context/           AuthContext — Firebase + demo-mode auth & data
-  lib/               emissions engine · recommendations · gamification · gemini · firebase
-  pages/             Landing · Login · Signup · Profile · Track · Dashboard · Insights
+  components/        UI primitives (shadcn-style), layout, community/, StatCard
+  context/           auth-context (hook) + AuthContext (provider)
+  lib/               constants · emissions · recommendations · gamification · gemini · firebase
+  pages/             Landing · Login · Signup · Profile · Track · Dashboard · Insights · Community
   routes/            ProtectedRoute · RequireOnboarded
+functions/           Gemini Cloud Function (insights, recommendations, bill OCR)
+e2e/                 Playwright end-to-end specs
 ```
+
+See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the full layout, conventions, and data flow.
 
 ## 📐 Design system
 

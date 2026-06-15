@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 function getInitial(): boolean {
   if (typeof document === "undefined") return false;
@@ -12,7 +13,7 @@ export function ThemeToggle() {
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
-    localStorage.setItem("prithvi.theme", dark ? "dark" : "light");
+    localStorage.setItem(STORAGE_KEYS.theme, dark ? "dark" : "light");
   }, [dark]);
 
   return (

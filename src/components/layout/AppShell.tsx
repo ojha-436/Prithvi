@@ -1,11 +1,22 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { LayoutDashboard, ClipboardList, Sparkles, Users, UserRound, Flame, Trophy, LogOut, Menu, X } from "lucide-react";
+import {
+  LayoutDashboard,
+  ClipboardList,
+  Sparkles,
+  Users,
+  UserRound,
+  Flame,
+  Trophy,
+  LogOut,
+  Menu,
+  X,
+} from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { SkipLink } from "@/components/SkipLink";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context";
 import { cn, formatNumber } from "@/lib/utils";
 
 const NAV = [
@@ -43,7 +54,7 @@ export function AppShell() {
                 "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
                 isActive
                   ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
               )
             }
           >
@@ -54,7 +65,7 @@ export function AppShell() {
       </nav>
       <div className="rounded-lg border border-border bg-background p-3">
         <div className="flex items-center gap-2 text-sm">
-          <span className="grid size-8 place-items-center rounded-full bg-accent/12 font-display text-sm font-semibold text-accent">
+          <span className="bg-accent/12 grid size-8 place-items-center rounded-full font-display text-sm font-semibold text-accent">
             {user?.displayName?.[0]?.toUpperCase() ?? "U"}
           </span>
           <div className="min-w-0 flex-1">
@@ -80,7 +91,10 @@ export function AppShell() {
       {/* Mobile overlay sidebar */}
       {open && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-foreground/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
+          <div
+            className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
+            onClick={() => setOpen(false)}
+          />
           <aside className="absolute inset-y-0 left-0 w-72 border-r border-border bg-card shadow-lift">
             {SidebarBody}
           </aside>
@@ -90,7 +104,13 @@ export function AppShell() {
       <div className="lg:pl-64">
         {/* Top bar */}
         <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/85 px-4 backdrop-blur-md sm:px-6">
-          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setOpen((o) => !o)} aria-label="Menu">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={() => setOpen((o) => !o)}
+            aria-label="Menu"
+          >
             {open ? <X /> : <Menu />}
           </Button>
           <div className="flex-1" />
