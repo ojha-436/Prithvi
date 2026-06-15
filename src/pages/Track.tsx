@@ -1,6 +1,6 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { Home, Car, Utensils, ShoppingBag, Upload, Loader2, Gauge } from "lucide-react";
+import { Home, Car, Utensils, ShoppingBag, Upload, Loader2, Gauge, Sparkles, CheckCircle2, AlertCircle } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
 import { computeFootprint, EMPTY_LIFESTYLE, CATEGORY_META, INDIA_PER_CAPITA_KG } from "@/lib/emissions";
 import { registerActivity } from "@/lib/gamification";
+import { extractBillData, isBillScanAvailable } from "@/lib/gemini";
 import { cn, formatCO2 } from "@/lib/utils";
 import type { CommuteMode, DietType, LifestyleInput } from "@/types";
 
@@ -63,6 +64,7 @@ export default function Track() {
       <form onSubmit={submit} className="grid gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-start">
         <div className="space-y-6">
           <SectionCard icon={Home} title="Home energy">
+            <BillScan onScanned={(kwh) => set("monthlyElectricityKwh", kwh)} />
             <NumberField label="Monthly electricity" unit="kWh" value={form.monthlyElectricityKwh} onChange={(v) => set("monthlyElectricityKwh", v)} hint="Check your last bill — average urban home ≈ 250 kWh." />
             <NumberField label="LPG cylinders per month" unit="cyl" step={0.5} value={form.lpgCylindersPerMonth} onChange={(v) => set("lpgCylindersPerMonth", v)} />
             <div className="space-y-1.5">
@@ -97,9 +99,6 @@ export default function Track() {
 
           <SectionCard icon={ShoppingBag} title="Goods & shopping">
             <NumberField label="Discretionary spend" unit="₹/month" step={500} value={form.shoppingSpendPerMonth} onChange={(v) => set("shoppingSpendPerMonth", v)} hint="Clothes, electronics, household goods — not rent or groceries." />
-            <button type="button" disabled className="flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-              <Upload className="size-4" /> Upload an electricity bill <Badge variant="muted" className="ml-1">Soon</Badge>
-            </button>
           </SectionCard>
         </div>
 
@@ -207,6 +206,74 @@ function NumberField({
         )}
       </div>
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+    </div>
+  );
+}
+
+function BillScan({ onScanned }: { onScanned: (kwh: number) => void }) {
+  const [status, setStatus] = useState<"idle" | "scanning" | "done" | "error">("idle");
+  const [message, setMessage] = useState("");
+
+  const handleFile = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setStatus("error");
+      setMessage("Please choose an image (JPG or PNG).");
+      return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      setStatus("error");
+      setMessage("Image is too large — keep it under 4 MB.");
+      return;
+    }
+    setStatus("scanning");
+    setMessage("");
+    try {
+      const { monthlyKwh } = await extractBillData(file);
+      if (monthlyKwh) {
+        onScanned(monthlyKwh);
+        setStatus("done");
+        setMessage(`Read ~${monthlyKwh} kWh/month from your bill. Adjust if needed.`);
+      } else {
+        setStatus("error");
+        setMessage("Couldn't find the units on that bill — please enter them manually.");
+      }
+    } catch {
+      setStatus("error");
+      setMessage("Scan failed — please enter your usage manually.");
+    }
+  };
+
+  if (!isBillScanAvailable) {
+    return (
+      <div className="flex items-center gap-2 rounded-md border border-dashed border-border bg-muted/40 px-3.5 py-2.5 text-xs text-muted-foreground">
+        <Upload className="size-4 shrink-0" /> Bill scanning is available on the live app.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <label
+        className={cn(
+          "flex cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed px-4 py-3 text-sm font-medium transition-colors",
+          status === "scanning"
+            ? "border-primary/40 bg-primary/5 text-primary"
+            : "border-primary/30 bg-primary/[0.04] text-primary hover:bg-primary/10"
+        )}
+      >
+        {status === "scanning" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+        {status === "scanning" ? "Reading your bill…" : "Scan an electricity bill with AI"}
+        <input id="bill-upload" type="file" accept="image/*" className="sr-only" onChange={handleFile} disabled={status === "scanning"} />
+      </label>
+      {message && (
+        <p className={cn("flex items-center gap-1.5 text-xs", status === "done" ? "text-success" : "text-destructive")}>
+          {status === "done" ? <CheckCircle2 className="size-3.5" /> : <AlertCircle className="size-3.5" />}
+          {message}
+        </p>
+      )}
     </div>
   );
 }

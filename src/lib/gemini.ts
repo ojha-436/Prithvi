@@ -20,6 +20,41 @@ const client = !viaFunctions && apiKey ? new GoogleGenerativeAI(apiKey) : null;
 
 export const isGeminiConfigured = viaFunctions || Boolean(apiKey);
 
+/** Bill scanning needs the secure server function (image → Gemini Vision). */
+export const isBillScanAvailable = Boolean(functions);
+
+export interface BillScan {
+  monthlyKwh: number | null;
+  raw: { kwh: number | null; periodMonths: number | null };
+}
+
+/** Convert a raw bill reading into average monthly kWh. Pure + unit-tested. */
+export function billToMonthlyKwh(kwh: number | null, periodMonths: number | null): number | null {
+  if (!kwh || kwh <= 0) return null;
+  const months = periodMonths && periodMonths > 0 ? periodMonths : 1;
+  return Math.round(kwh / months);
+}
+
+async function fileToInlineData(file: File): Promise<{ data: string; mimeType: string }> {
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result as string);
+    r.onerror = () => reject(new Error("Could not read file"));
+    r.readAsDataURL(file);
+  });
+  return { data: dataUrl.split(",")[1] ?? "", mimeType: file.type || "image/jpeg" };
+}
+
+/** Send a utility-bill image to the secure function; returns extracted usage. */
+export async function extractBillData(file: File): Promise<BillScan> {
+  if (!functions) throw new Error("Bill scanning is only available in the deployed app.");
+  const image = await fileToInlineData(file);
+  const fn = httpsCallable(functions, "geminiAdvise");
+  const res = await fn({ kind: "bill", image });
+  const raw = res.data as { kwh: number | null; periodMonths: number | null };
+  return { monthlyKwh: billToMonthlyKwh(raw.kwh, raw.periodMonths), raw };
+}
+
 async function callAdvise(kind: "insight" | "recommend", footprint: FootprintResult, lifestyle?: LifestyleInput) {
   const fn = httpsCallable(functions!, "geminiAdvise");
   const res = await fn({ kind, footprint, lifestyle });
