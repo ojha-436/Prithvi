@@ -39,7 +39,7 @@ exports.geminiAdvise = onCall(
     }
 
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY.value());
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
     const b = footprint.breakdown || {};
 
     try {

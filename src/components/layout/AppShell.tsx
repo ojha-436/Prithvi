@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { LayoutDashboard, ClipboardList, Sparkles, UserRound, Flame, Trophy, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Sparkles, Users, UserRound, Flame, Trophy, LogOut, Menu, X } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { SkipLink } from "@/components/SkipLink";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -12,6 +12,7 @@ const NAV = [
   { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/app/track", label: "Track footprint", icon: ClipboardList },
   { to: "/app/insights", label: "Insights & actions", icon: Sparkles },
+  { to: "/app/community", label: "Community", icon: Users },
   { to: "/app/profile", label: "Personal details", icon: UserRound },
 ];
 

@@ -13,6 +13,7 @@ const Profile = lazy(() => import("@/pages/Profile"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Track = lazy(() => import("@/pages/Track"));
 const Insights = lazy(() => import("@/pages/Insights"));
+const Community = lazy(() => import("@/pages/Community"));
 
 function RouteFallback() {
   return (
@@ -45,6 +46,7 @@ export default function App() {
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="track" element={<Track />} />
               <Route path="insights" element={<Insights />} />
+              <Route path="community" element={<Community />} />
             </Route>
           </Route>
         </Route>

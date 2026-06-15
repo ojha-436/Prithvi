@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -95,10 +96,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const demoMode = !isFirebaseConfigured;
 
+  // Refs hold the latest values so sequential mutations in the same tick
+  // (e.g. saveFootprint then updateGame) compose instead of clobbering.
+  const userRef = useRef<SessionUser | null>(null);
+  const dataRef = useRef<UserData | null>(null);
+
   const hydrate = useCallback(async (u: SessionUser | null) => {
     setUser(u);
-    if (u) setUserData(await loadUserData(u));
-    else setUserData(null);
+    userRef.current = u;
+    const data = u ? await loadUserData(u) : null;
+    setUserData(data);
+    dataRef.current = data;
     setLoading(false);
   }, []);
 
@@ -166,36 +174,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [hydrate]);
 
   // ── Data mutations ──────────────────────────────────────────────────────────
-  const commit = useCallback(
-    async (next: UserData) => {
-      setUserData(next);
-      if (user) await persistUserData(user.uid, next);
-    },
-    [user]
-  );
+  // Builds the next state from the LATEST committed value (via ref), updates
+  // local state immediately, then persists. Failures to persist never break the
+  // in-app experience.
+  const commit = useCallback(async (update: (prev: UserData) => UserData) => {
+    const prev = dataRef.current;
+    if (!prev) return;
+    const next = update(prev);
+    dataRef.current = next;
+    setUserData(next);
+    const uid = userRef.current?.uid;
+    if (uid) {
+      try {
+        await persistUserData(uid, next);
+      } catch (err) {
+        console.error("Failed to persist user data:", err);
+      }
+    }
+  }, []);
 
   const saveProfile = useCallback(
     async (profile: Partial<UserProfile>) => {
-      if (!userData) return;
-      await commit({ ...userData, profile: { ...userData.profile, ...profile, onboarded: true } });
+      await commit((prev) => ({
+        ...prev,
+        profile: { ...prev.profile, ...profile, onboarded: true },
+      }));
     },
-    [userData, commit]
+    [commit]
   );
 
   const saveFootprint = useCallback(
     async (lifestyle: LifestyleInput, footprint: FootprintResult) => {
-      if (!userData) return;
-      await commit({ ...userData, lifestyle, footprint });
+      await commit((prev) => ({ ...prev, lifestyle, footprint }));
     },
-    [userData, commit]
+    [commit]
   );
 
   const updateGame = useCallback(
     async (game: GamificationState) => {
-      if (!userData) return;
-      await commit({ ...userData, game });
+      await commit((prev) => ({ ...prev, game }));
     },
-    [userData, commit]
+    [commit]
   );
 
   const value = useMemo<AuthContextValue>(

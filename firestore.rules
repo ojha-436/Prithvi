@@ -35,6 +35,28 @@ service cloud.firestore {
       }
     }
 
+    // Community forum: shared among authenticated members.
+    match /posts/{postId} {
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn()
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 1000
+        && request.resource.data.category is string
+        && request.resource.data.co2SavedKg is number
+        && request.resource.data.co2SavedKg >= 0
+        && request.resource.data.co2SavedKg <= 100000
+        && request.resource.data.likedBy is list;
+
+      // Members may only toggle likes (no other field may change); authors may
+      // delete their own posts.
+      allow update: if isSignedIn()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likedBy']);
+      allow delete: if isSignedIn() && resource.data.authorId == request.auth.uid;
+    }
+
     // Everything else is denied by default (no implicit public access).
   }
 }
