@@ -2,7 +2,7 @@ import { initializeApp, type FirebaseApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getFunctions } from "firebase/functions";
-import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -26,7 +26,7 @@ if (isFirebaseConfigured) {
   if (recaptchaKey) {
     try {
       initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider(recaptchaKey),
+        provider: new ReCaptchaEnterpriseProvider(recaptchaKey),
         isTokenAutoRefreshEnabled: true,
       });
     } catch {

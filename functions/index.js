@@ -23,8 +23,8 @@ exports.geminiAdvise = onCall(
   {
     secrets: [GEMINI_API_KEY],
     region: "asia-south1",
-    // Flip to true once App Check is configured for the web app (recommended).
-    enforceAppCheck: false,
+    // App Check is configured (reCAPTCHA Enterprise) — reject unattested callers.
+    enforceAppCheck: true,
     cors: true,
     maxInstances: 10,
   },
