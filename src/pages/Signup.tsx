@@ -27,17 +27,25 @@ export default function Signup() {
     if (name.trim().length < 2) return setError("Please enter your name.");
     if (!EMAIL_RE.test(email.trim())) return setError("Please enter a valid email address.");
     if (password.length < 6) return setError("Password must be at least 6 characters.");
-    void run("email", async () => {
-      await signUp(email.trim(), password, name.trim());
-      navigate("/app/profile", { replace: true });
-    }, "Could not create your account.");
+    void run(
+      "email",
+      async () => {
+        await signUp(email.trim(), password, name.trim());
+        navigate("/app/profile", { replace: true });
+      },
+      "Could not create your account.",
+    );
   };
 
   const google = () => {
-    void run("google", async () => {
-      await signInWithGoogle();
-      navigate("/app/profile", { replace: true });
-    }, "Google sign-in failed.");
+    void run(
+      "google",
+      async () => {
+        await signInWithGoogle();
+        navigate("/app/profile", { replace: true });
+      },
+      "Google sign-in failed.",
+    );
   };
 
   return (

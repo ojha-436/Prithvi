@@ -107,9 +107,9 @@ Our engine already suggested: ${baseline.map((r) => r.title).join("; ")}.
 Return 5 concrete, India-specific actions ranked by impact. Respond with ONLY a JSON array of objects:
 [{"category":"home|travel|food|goods","title":"<short>","detail":"<one sentence, India-relevant>","estimatedSavingKg":<number>,"effort":"easy|medium|ambitious"}]`;
     const result = await model.generateContent(prompt);
-    const parsed = JSON.parse(
-      extractJsonArray(result.response.text()),
-    ) as Array<Omit<Recommendation, "id" | "source">>;
+    const parsed = JSON.parse(extractJsonArray(result.response.text())) as Array<
+      Omit<Recommendation, "id" | "source">
+    >;
     const cleaned = parsed
       .filter((r) => CATEGORY_META[r.category] && r.title)
       .map((r, i) => ({ ...r, id: `gemini-${i}`, source: "gemini" as const }));

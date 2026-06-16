@@ -26,17 +26,25 @@ export default function Login() {
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!EMAIL_RE.test(email.trim())) return setError("Please enter a valid email address.");
-    void run("email", async () => {
-      await signIn(email.trim(), password);
-      navigate(from, { replace: true });
-    }, "Could not sign you in.");
+    void run(
+      "email",
+      async () => {
+        await signIn(email.trim(), password);
+        navigate(from, { replace: true });
+      },
+      "Could not sign you in.",
+    );
   };
 
   const google = () => {
-    void run("google", async () => {
-      await signInWithGoogle();
-      navigate(from, { replace: true });
-    }, "Google sign-in failed.");
+    void run(
+      "google",
+      async () => {
+        await signInWithGoogle();
+        navigate(from, { replace: true });
+      },
+      "Google sign-in failed.",
+    );
   };
 
   return (
