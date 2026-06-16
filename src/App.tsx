@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { applyStoredTheme } from "@/lib/theme";
 import { AppShell } from "@/components/layout/AppShell";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ProtectedRoute, RequireOnboarded } from "@/routes/ProtectedRoute";
 
 // Route-level code splitting — each page ships as its own chunk and loads on
@@ -32,27 +33,29 @@ export default function App() {
   }, []);
 
   return (
-    <Suspense fallback={<RouteFallback />}>
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+    <ErrorBoundary>
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
 
-        <Route element={<ProtectedRoute />}>
-          <Route path="/app" element={<AppShell />}>
-            <Route index element={<Navigate to="/app/dashboard" replace />} />
-            <Route path="profile" element={<Profile />} />
-            <Route element={<RequireOnboarded />}>
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="track" element={<Track />} />
-              <Route path="insights" element={<Insights />} />
-              <Route path="community" element={<Community />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/app" element={<AppShell />}>
+              <Route index element={<Navigate to="/app/dashboard" replace />} />
+              <Route path="profile" element={<Profile />} />
+              <Route element={<RequireOnboarded />}>
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="track" element={<Track />} />
+                <Route path="insights" element={<Insights />} />
+                <Route path="community" element={<Community />} />
+              </Route>
             </Route>
           </Route>
-        </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Suspense>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
   );
 }

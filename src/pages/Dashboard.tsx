@@ -29,7 +29,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/context/auth-context";
-import { CATEGORY_META } from "@/lib/emissions";
+import { calculateVsIndia, CATEGORY_META } from "@/lib/emissions";
 import { getInsight, getRecommendations, isGeminiConfigured } from "@/lib/gemini";
 import { BADGES, nextBadge } from "@/lib/gamification";
 import { DASHBOARD_BENCHMARKS, SUSTAINABLE_TARGET_TONNES } from "@/lib/countryData";
@@ -78,7 +78,7 @@ export default function Dashboard() {
 
   if (!footprint || !game) return <EmptyState />;
 
-  const vsIndia = Math.round((footprint.total / footprint.perCapitaIndia) * 100);
+  const vsIndia = calculateVsIndia(footprint.total);
   const next = nextBadge(game);
   const nextProgress = next
     ? (next.metric === "co2"

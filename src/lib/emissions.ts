@@ -33,6 +33,10 @@ export const FACTORS = {
 
 export const INDIA_PER_CAPITA_KG = 2000;
 
+/** A footprint expressed as a percentage of the average Indian's per-capita footprint. */
+export const calculateVsIndia = (totalKg: number): number =>
+  Math.round((totalKg / INDIA_PER_CAPITA_KG) * 100);
+
 export function computeFootprint(input: LifestyleInput): FootprintResult {
   // Clamp all numeric inputs to non-negative values before computing.
   const safe: LifestyleInput = {

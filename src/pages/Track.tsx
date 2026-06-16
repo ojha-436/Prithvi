@@ -21,13 +21,14 @@ import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/auth-context";
 import {
+  calculateVsIndia,
   computeFootprint,
   EMPTY_LIFESTYLE,
   CATEGORY_META,
-  INDIA_PER_CAPITA_KG,
 } from "@/lib/emissions";
 import { registerActivity } from "@/lib/gamification";
 import { extractBillData, isBillScanAvailable } from "@/lib/gemini";
+import { useDebounce } from "@/hooks/useDebounce";
 import { COMMUNITY } from "@/lib/constants";
 import { cn, formatCO2 } from "@/lib/utils";
 import type { CommuteMode, DietType, LifestyleInput } from "@/types";
@@ -58,8 +59,11 @@ export default function Track() {
   const set = <K extends keyof LifestyleInput>(k: K, v: LifestyleInput[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
-  const live = useMemo(() => computeFootprint(form), [form]);
-  const vsIndia = Math.round((live.total / INDIA_PER_CAPITA_KG) * 100);
+  // Debounce the live preview so the estimate (and its aria-live announcement)
+  // settles after typing rather than recomputing on every keystroke.
+  const debouncedForm = useDebounce(form, 300);
+  const live = useMemo(() => computeFootprint(debouncedForm), [debouncedForm]);
+  const vsIndia = calculateVsIndia(live.total);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();

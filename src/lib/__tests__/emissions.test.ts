@@ -1,6 +1,21 @@
 import { describe, it, expect } from "vitest";
-import { computeFootprint, EMPTY_LIFESTYLE, FACTORS, INDIA_PER_CAPITA_KG } from "@/lib/emissions";
+import {
+  calculateVsIndia,
+  computeFootprint,
+  EMPTY_LIFESTYLE,
+  FACTORS,
+  INDIA_PER_CAPITA_KG,
+} from "@/lib/emissions";
 import type { LifestyleInput } from "@/types";
+
+describe("calculateVsIndia", () => {
+  it("expresses a footprint as a percentage of India's per-capita average", () => {
+    expect(calculateVsIndia(INDIA_PER_CAPITA_KG)).toBe(100);
+    expect(calculateVsIndia(INDIA_PER_CAPITA_KG / 2)).toBe(50);
+    expect(calculateVsIndia(INDIA_PER_CAPITA_KG * 2)).toBe(200);
+    expect(calculateVsIndia(0)).toBe(0);
+  });
+});
 
 const base: LifestyleInput = {
   monthlyElectricityKwh: 100,

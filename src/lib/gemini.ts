@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { httpsCallable } from "firebase/functions";
 import type { FootprintResult, LifestyleInput, Recommendation } from "@/types";
 import { generateRecommendations } from "./recommendations";
-import { CATEGORY_META } from "./emissions";
+import { calculateVsIndia, CATEGORY_META } from "./emissions";
 import { formatCO2 } from "./utils";
 import { functions } from "./firebase";
 
@@ -121,7 +121,7 @@ Return 5 concrete, India-specific actions ranked by impact. Respond with ONLY a 
 }
 
 export async function getInsight(footprint: FootprintResult): Promise<string> {
-  const vsIndia = Math.round((footprint.total / footprint.perCapitaIndia) * 100);
+  const vsIndia = calculateVsIndia(footprint.total);
   const fallback =
     vsIndia > 100
       ? `Your footprint is about ${vsIndia}% of the average Indian's. The largest lever right now is your ${biggestCategory(footprint)} — small changes there move the needle fastest.`
