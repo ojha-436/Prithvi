@@ -59,4 +59,40 @@ describe("computeFootprint", () => {
     Object.values(r.breakdown).forEach((v) => expect(v).toBeGreaterThanOrEqual(0));
     expect(r.total).toBeGreaterThanOrEqual(0);
   });
+
+  it("clamps negative inputs to zero so output stays non-negative", () => {
+    const r = computeFootprint({
+      ...base,
+      monthlyElectricityKwh: -500,
+      lpgCylindersPerMonth: -10,
+      commuteKmPerDay: -50,
+      flightsShortHaulPerYear: -3,
+      flightsLongHaulPerYear: -1,
+      dineOutPerWeek: -7,
+      shoppingSpendPerMonth: -9999,
+    });
+    Object.values(r.breakdown).forEach((v) => expect(v).toBeGreaterThanOrEqual(0));
+    expect(r.total).toBeGreaterThanOrEqual(0);
+  });
+
+  it("orders diet emissions: vegan < vegetarian < eggetarian < occasional-meat < regular-meat", () => {
+    const diets = ["vegan", "vegetarian", "eggetarian", "occasional-meat", "regular-meat"] as const;
+    const totals = diets.map((diet) => computeFootprint({ ...base, diet }).breakdown.food);
+    for (let i = 1; i < totals.length; i++) {
+      expect(totals[i]).toBeGreaterThan(totals[i - 1]);
+    }
+  });
+
+  it("hasSolar=true always reduces home emissions vs no solar for identical input", () => {
+    const profiles: LifestyleInput[] = [
+      { ...base, monthlyElectricityKwh: 50 },
+      { ...base, monthlyElectricityKwh: 300 },
+      { ...base, monthlyElectricityKwh: 0 },
+    ];
+    for (const p of profiles) {
+      const withSolar = computeFootprint({ ...p, hasSolar: true }).breakdown.home;
+      const noSolar = computeFootprint({ ...p, hasSolar: false }).breakdown.home;
+      expect(withSolar).toBeLessThanOrEqual(noSolar);
+    }
+  });
 });

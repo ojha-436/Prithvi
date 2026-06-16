@@ -35,6 +35,18 @@ export function billToMonthlyKwh(kwh: number | null, periodMonths: number | null
   return Math.round(kwh / months);
 }
 
+/**
+ * Extract a JSON array from a model response that may wrap it in markdown fences.
+ * Tries fenced extraction first, then falls back to finding a bare array literal.
+ */
+function extractJsonArray(text: string): string {
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  if (fenced) return fenced[1].trim();
+  const arrayLiteral = text.match(/\[[\s\S]*\]/);
+  if (arrayLiteral) return arrayLiteral[0];
+  return text.trim();
+}
+
 async function fileToInlineData(file: File): Promise<{ data: string; mimeType: string }> {
   const dataUrl = await new Promise<string>((resolve, reject) => {
     const r = new FileReader();
@@ -95,11 +107,9 @@ Our engine already suggested: ${baseline.map((r) => r.title).join("; ")}.
 Return 5 concrete, India-specific actions ranked by impact. Respond with ONLY a JSON array of objects:
 [{"category":"home|travel|food|goods","title":"<short>","detail":"<one sentence, India-relevant>","estimatedSavingKg":<number>,"effort":"easy|medium|ambitious"}]`;
     const result = await model.generateContent(prompt);
-    const text = result.response
-      .text()
-      .replace(/```json|```/g, "")
-      .trim();
-    const parsed = JSON.parse(text) as Array<Omit<Recommendation, "id" | "source">>;
+    const parsed = JSON.parse(
+      extractJsonArray(result.response.text()),
+    ) as Array<Omit<Recommendation, "id" | "source">>;
     const cleaned = parsed
       .filter((r) => CATEGORY_META[r.category] && r.title)
       .map((r, i) => ({ ...r, id: `gemini-${i}`, source: "gemini" as const }));

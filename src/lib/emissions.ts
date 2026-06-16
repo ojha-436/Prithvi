@@ -34,24 +34,36 @@ export const FACTORS = {
 export const INDIA_PER_CAPITA_KG = 2000;
 
 export function computeFootprint(input: LifestyleInput): FootprintResult {
+  // Clamp all numeric inputs to non-negative values before computing.
+  const safe: LifestyleInput = {
+    ...input,
+    monthlyElectricityKwh: Math.max(0, input.monthlyElectricityKwh),
+    lpgCylindersPerMonth: Math.max(0, input.lpgCylindersPerMonth),
+    commuteKmPerDay: Math.max(0, input.commuteKmPerDay),
+    flightsShortHaulPerYear: Math.max(0, input.flightsShortHaulPerYear),
+    flightsLongHaulPerYear: Math.max(0, input.flightsLongHaulPerYear),
+    dineOutPerWeek: Math.max(0, input.dineOutPerWeek),
+    shoppingSpendPerMonth: Math.max(0, input.shoppingSpendPerMonth),
+  };
+
   const electricity =
-    input.monthlyElectricityKwh *
+    safe.monthlyElectricityKwh *
     12 *
     FACTORS.gridKwh *
-    (input.hasSolar ? 1 - FACTORS.solarOffset : 1);
-  const lpg = input.lpgCylindersPerMonth * 12 * FACTORS.lpgCylinder;
+    (safe.hasSolar ? 1 - FACTORS.solarOffset : 1);
+  const lpg = safe.lpgCylindersPerMonth * 12 * FACTORS.lpgCylinder;
   const home = electricity + lpg;
 
   const commute =
-    input.commuteKmPerDay * FACTORS.workingDaysPerYear * FACTORS.commutePerKm[input.commuteMode];
+    safe.commuteKmPerDay * FACTORS.workingDaysPerYear * FACTORS.commutePerKm[safe.commuteMode];
   const flights =
-    input.flightsShortHaulPerYear * FACTORS.flightShortHaul +
-    input.flightsLongHaulPerYear * FACTORS.flightLongHaul;
+    safe.flightsShortHaulPerYear * FACTORS.flightShortHaul +
+    safe.flightsLongHaulPerYear * FACTORS.flightLongHaul;
   const travel = commute + flights;
 
-  const food = FACTORS.dietAnnual[input.diet] + input.dineOutPerWeek * 52 * FACTORS.dineOutPerMeal;
+  const food = FACTORS.dietAnnual[safe.diet] + safe.dineOutPerWeek * 52 * FACTORS.dineOutPerMeal;
 
-  const goods = input.shoppingSpendPerMonth * 12 * FACTORS.goodsPerRupee;
+  const goods = safe.shoppingSpendPerMonth * 12 * FACTORS.goodsPerRupee;
 
   const breakdown = {
     home: Math.round(home),

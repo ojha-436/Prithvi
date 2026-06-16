@@ -8,6 +8,9 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { GoogleIcon } from "@/components/GoogleIcon";
 import { useAuth } from "@/context/auth-context";
+import { useAuthForm } from "@/hooks/useAuthForm";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function Signup() {
   const { signUp, signInWithGoogle, demoMode } = useAuth();
@@ -17,36 +20,24 @@ export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState<"email" | "google" | null>(null);
+  const { error, setError, loading, run } = useAuthForm();
 
-  const submit = async (e: FormEvent) => {
+  const submit = (e: FormEvent) => {
     e.preventDefault();
-    setError("");
     if (name.trim().length < 2) return setError("Please enter your name.");
+    if (!EMAIL_RE.test(email.trim())) return setError("Please enter a valid email address.");
     if (password.length < 6) return setError("Password must be at least 6 characters.");
-    setLoading("email");
-    try {
+    void run("email", async () => {
       await signUp(email.trim(), password, name.trim());
       navigate("/app/profile", { replace: true });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not create your account.");
-    } finally {
-      setLoading(null);
-    }
+    }, "Could not create your account.");
   };
 
-  const google = async () => {
-    setError("");
-    setLoading("google");
-    try {
+  const google = () => {
+    void run("google", async () => {
       await signInWithGoogle();
       navigate("/app/profile", { replace: true });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Google sign-in failed.");
-    } finally {
-      setLoading(null);
-    }
+    }, "Google sign-in failed.");
   };
 
   return (
@@ -114,7 +105,7 @@ export default function Signup() {
             ) : (
               <GoogleIcon className="size-[18px]" />
             )}
-            Continue with Google
+            Sign in with Google
           </Button>
         </>
       )}

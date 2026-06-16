@@ -8,6 +8,9 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { GoogleIcon } from "@/components/GoogleIcon";
 import { useAuth } from "@/context/auth-context";
+import { useAuthForm } from "@/hooks/useAuthForm";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function Login() {
   const { signIn, signInWithGoogle, demoMode } = useAuth();
@@ -18,34 +21,22 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState<"email" | "google" | null>(null);
+  const { error, setError, loading, run } = useAuthForm();
 
-  const submit = async (e: FormEvent) => {
+  const submit = (e: FormEvent) => {
     e.preventDefault();
-    setError("");
-    setLoading("email");
-    try {
+    if (!EMAIL_RE.test(email.trim())) return setError("Please enter a valid email address.");
+    void run("email", async () => {
       await signIn(email.trim(), password);
       navigate(from, { replace: true });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not sign you in.");
-    } finally {
-      setLoading(null);
-    }
+    }, "Could not sign you in.");
   };
 
-  const google = async () => {
-    setError("");
-    setLoading("google");
-    try {
+  const google = () => {
+    void run("google", async () => {
       await signInWithGoogle();
       navigate(from, { replace: true });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Google sign-in failed.");
-    } finally {
-      setLoading(null);
-    }
+    }, "Google sign-in failed.");
   };
 
   return (
@@ -102,7 +93,7 @@ export default function Login() {
             ) : (
               <GoogleIcon className="size-[18px]" />
             )}
-            Continue with Google
+            Sign in with Google
           </Button>
         </>
       )}

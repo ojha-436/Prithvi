@@ -32,7 +32,7 @@ import { useAuth } from "@/context/auth-context";
 import { CATEGORY_META } from "@/lib/emissions";
 import { getInsight, getRecommendations, isGeminiConfigured } from "@/lib/gemini";
 import { BADGES, nextBadge } from "@/lib/gamification";
-import { SUSTAINABLE_TARGET_TONNES } from "@/lib/countryData";
+import { DASHBOARD_BENCHMARKS, SUSTAINABLE_TARGET_TONNES } from "@/lib/countryData";
 import { cn, formatCO2, formatNumber } from "@/lib/utils";
 import type { Recommendation } from "@/types";
 
@@ -71,9 +71,7 @@ export default function Dashboard() {
   const benchmark = useMemo(
     () => [
       { name: "You", t: footprint ? +(footprint.total / 1000).toFixed(2) : 0, you: true },
-      { name: "India avg", t: 2.0, you: false },
-      { name: "Japan", t: 8.5, you: false },
-      { name: "USA", t: 14.4, you: false },
+      ...DASHBOARD_BENCHMARKS.map((b) => ({ ...b, you: false })),
     ],
     [footprint],
   );

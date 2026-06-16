@@ -12,6 +12,7 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db, googleProvider, isFirebaseConfigured } from "@/lib/firebase";
 import { STORAGE_KEYS } from "@/lib/constants";
 import { initGameState } from "@/lib/gamification";
+import { parseJsonSafe } from "@/lib/utils";
 import { AuthContext, type AuthContextValue, type SessionUser } from "./auth-context";
 import type {
   GamificationState,
@@ -52,8 +53,8 @@ async function loadUserData(user: SessionUser): Promise<UserData> {
     await setDoc(ref, fresh);
     return fresh;
   }
-  const raw = localStorage.getItem(dataKey(user.uid));
-  if (raw) return JSON.parse(raw) as UserData;
+  const parsed = parseJsonSafe<UserData | null>(localStorage.getItem(dataKey(user.uid)), null);
+  if (parsed) return parsed;
   const fresh = baseUserData(user);
   localStorage.setItem(dataKey(user.uid), JSON.stringify(fresh));
   return fresh;
@@ -102,8 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     }
     // Demo mode: restore session from localStorage
-    const raw = localStorage.getItem(LS_SESSION);
-    void hydrate(raw ? (JSON.parse(raw) as SessionUser) : null);
+    void hydrate(parseJsonSafe<SessionUser | null>(localStorage.getItem(LS_SESSION), null));
   }, [hydrate]);
 
   // ── Auth methods ──────────────────────────────────────────────────────────
@@ -115,7 +115,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await hydrate({ uid: cred.user.uid, email, displayName: name });
         return;
       }
-      const users = JSON.parse(localStorage.getItem(LS_USERS) || "{}");
+      const users = parseJsonSafe<Record<string, { uid: string; password: string; name: string }>>(
+        localStorage.getItem(LS_USERS),
+        {},
+      );
       if (users[email]) throw new Error("An account with this email already exists.");
       const uid = `demo-${Date.now()}`;
       users[email] = { uid, password, name };
@@ -133,7 +136,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await signInWithEmailAndPassword(auth, email, password);
         return;
       }
-      const users = JSON.parse(localStorage.getItem(LS_USERS) || "{}");
+      const users = parseJsonSafe<Record<string, { uid: string; password: string; name: string }>>(
+        localStorage.getItem(LS_USERS),
+        {},
+      );
       const record = users[email];
       if (!record || record.password !== password) throw new Error("Invalid email or password.");
       const session = { uid: record.uid, email, displayName: record.name };

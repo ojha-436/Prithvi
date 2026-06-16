@@ -111,7 +111,7 @@ export async function createPost(
   }
   const posts = readLocal();
   posts.unshift({
-    id: `local-${posts.length}-${Math.round(performance.now())}`,
+    id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
     authorId: author.uid,
     authorName: author.displayName,
     text,

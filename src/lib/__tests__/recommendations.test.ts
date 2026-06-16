@@ -56,4 +56,29 @@ describe("generateRecommendations", () => {
     expect(recs.length).toBeGreaterThanOrEqual(1);
     expect(recs.map((r) => r.id)).toContain("led-switch");
   });
+
+  it("triggers dine-in recommendation when eating out more than 3 times per week", () => {
+    const dineOut: LifestyleInput = { ...light, dineOutPerWeek: 5 };
+    const ids = generateRecommendations(dineOut, computeFootprint(dineOut)).map((r) => r.id);
+    expect(ids).toContain("dine-in");
+  });
+
+  it("triggers mindful-buying recommendation for high shopping spend", () => {
+    const shopper: LifestyleInput = { ...light, shoppingSpendPerMonth: 15000 };
+    const ids = generateRecommendations(shopper, computeFootprint(shopper)).map((r) => r.id);
+    expect(ids).toContain("mindful-buying");
+  });
+
+  it("every recommendation has all required fields with valid values", () => {
+    const recs = generateRecommendations(heavy, computeFootprint(heavy));
+    for (const r of recs) {
+      expect(r.id).toBeTruthy();
+      expect(r.title).toBeTruthy();
+      expect(r.detail).toBeTruthy();
+      expect(["home", "travel", "food", "goods"]).toContain(r.category);
+      expect(["easy", "medium", "ambitious"]).toContain(r.effort);
+      expect(r.estimatedSavingKg).toBeGreaterThan(0);
+      expect(r.source).toBe("engine");
+    }
+  });
 });

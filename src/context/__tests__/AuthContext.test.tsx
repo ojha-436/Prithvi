@@ -48,4 +48,62 @@ describe("AuthContext data mutations (demo mode)", () => {
     expect(result.current.userData?.profile.onboarded).toBe(true);
     expect(result.current.userData?.profile.city).toBe("Pune");
   });
+
+  it("throws an error when signing in with the wrong password", async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      await result.current.signUp("wrongpw@prithvi.test", "correct-pass", "Test User");
+    });
+
+    await act(async () => {
+      await result.current.signOut();
+    });
+    await waitFor(() => expect(result.current.user).toBeNull());
+
+    await expect(
+      act(async () => {
+        await result.current.signIn("wrongpw@prithvi.test", "wrong-pass");
+      }),
+    ).rejects.toThrow("Invalid email or password.");
+  });
+
+  it("clears user and userData after signOut", async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      await result.current.signUp("signout@prithvi.test", "pass123", "Sign Out User");
+    });
+    await waitFor(() => expect(result.current.user).not.toBeNull());
+
+    await act(async () => {
+      await result.current.signOut();
+    });
+
+    expect(result.current.user).toBeNull();
+    expect(result.current.userData).toBeNull();
+  });
+
+  it("allows sign-in after sign-up with the same credentials", async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    const email = "signin-roundtrip@prithvi.test";
+    await act(async () => {
+      await result.current.signUp(email, "mypass123", "Round Trip");
+    });
+    await act(async () => {
+      await result.current.signOut();
+    });
+    await waitFor(() => expect(result.current.user).toBeNull());
+
+    await act(async () => {
+      await result.current.signIn(email, "mypass123");
+    });
+
+    expect(result.current.user?.email).toBe(email);
+    expect(result.current.userData).not.toBeNull();
+  });
 });

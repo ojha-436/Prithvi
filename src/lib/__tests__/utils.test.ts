@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { cn, formatCO2, formatNumber } from "@/lib/utils";
+import { cn, formatCO2, formatNumber, parseJsonSafe } from "@/lib/utils";
 
 describe("formatCO2", () => {
   it("shows kilograms below a tonne", () => {
@@ -31,5 +31,26 @@ describe("cn", () => {
     expect(cn("p-2", "p-4")).toBe("p-4");
     const isHidden: boolean = false;
     expect(cn("text-sm", isHidden && "hidden", "font-bold")).toBe("text-sm font-bold");
+  });
+});
+
+describe("parseJsonSafe", () => {
+  it("parses valid JSON and returns the typed value", () => {
+    expect(parseJsonSafe<number[]>("[1,2,3]", [])).toEqual([1, 2, 3]);
+    expect(parseJsonSafe<{ a: number }>('{"a":42}', { a: 0 })).toEqual({ a: 42 });
+  });
+
+  it("returns the fallback for null or undefined input", () => {
+    expect(parseJsonSafe(null, "default")).toBe("default");
+    expect(parseJsonSafe(undefined, 99)).toBe(99);
+  });
+
+  it("returns the fallback for corrupt JSON instead of throwing", () => {
+    expect(parseJsonSafe("{bad json", [])).toEqual([]);
+    expect(parseJsonSafe("undefined", null)).toBeNull();
+  });
+
+  it("returns the fallback for an empty string", () => {
+    expect(parseJsonSafe("", "fallback")).toBe("fallback");
   });
 });

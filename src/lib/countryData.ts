@@ -22,6 +22,12 @@ export const COUNTRY_STATS: CountryStat[] = [
 /** A safe-planet target: the per-capita budget compatible with 1.5°C by ~2030. */
 export const SUSTAINABLE_TARGET_TONNES = 2.3;
 
+/** Countries shown in the Dashboard comparison bar chart (single source of truth). */
+export const DASHBOARD_BENCHMARKS = (["IN", "JP", "US"] as const).map((code) => {
+  const c = COUNTRY_STATS.find((s) => s.code === code)!;
+  return { name: code === "IN" ? "India avg" : c.name, t: c.perCapitaTonnes };
+});
+
 /** Where a typical Indian household's footprint comes from (illustrative share). */
 export const INDIA_SOURCE_SPLIT = [
   { name: "Electricity & home energy", value: 38 },

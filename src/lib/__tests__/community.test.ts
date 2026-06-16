@@ -38,4 +38,34 @@ describe("computeStats", () => {
     expect(s.leaderboard[0]).toMatchObject({ name: "Bina", co2: 200, steps: 1 });
     expect(s.leaderboard[1]).toMatchObject({ name: "Aarav", co2: 150, steps: 2 });
   });
+
+  it("handles posts with zero co2SavedKg without corrupting totals", () => {
+    const posts = [
+      mk({ authorId: "a", authorName: "A", co2SavedKg: 0 }),
+      mk({ authorId: "b", authorName: "B", co2SavedKg: 50 }),
+    ];
+    const s = computeStats(posts);
+    expect(s.totalCo2Saved).toBe(50);
+    expect(s.contributors).toBe(2);
+    expect(s.steps).toBe(2);
+  });
+
+  it("caps the leaderboard at 5 entries regardless of number of contributors", () => {
+    const posts = Array.from({ length: 10 }, (_, i) =>
+      mk({ authorId: `user-${i}`, authorName: `User ${i}`, co2SavedKg: i * 10 }),
+    );
+    expect(computeStats(posts).leaderboard).toHaveLength(5);
+  });
+
+  it("sorts leaderboard by CO2 desc, then steps desc as tiebreaker", () => {
+    const posts = [
+      mk({ authorId: "a", authorName: "A", co2SavedKg: 100 }),
+      mk({ authorId: "b", authorName: "B", co2SavedKg: 100 }),
+      mk({ authorId: "b", authorName: "B", co2SavedKg: 0 }),
+    ];
+    const lb = computeStats(posts).leaderboard;
+    // B has same CO2 (100) but more steps (2) → should rank first
+    expect(lb[0].name).toBe("B");
+    expect(lb[0].steps).toBe(2);
+  });
 });
