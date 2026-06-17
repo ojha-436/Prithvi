@@ -20,12 +20,12 @@ Mapped to the judging parameters, with verifiable evidence:
 
 | Parameter | What we did | Evidence |
 |-----------|-------------|----------|
-| **Code Quality** | Strict TypeScript, modular architecture, ESLint (typescript-eslint + react-hooks) — **0 errors**. | `npm run lint`, `npm run typecheck` |
-| **Security** | Firebase Auth (no password handling), default-deny + validated Firestore rules, server-side Gemini proxy (no key in client), strict CSP + HSTS + clickjacking headers, App Check scaffolding. | [`SECURITY.md`](SECURITY.md), live response headers |
-| **Efficiency** | Route-level code-splitting (initial JS **~44 kB** vs 105 kB), vendor chunking, immutable asset caching, lazy charts. | `npm run build` chunk report |
-| **Testing** | **36 tests** across engine, recommendations, gamification, utils, theme, country data, components, and the auth/route guard. | `npm test` |
-| **Accessibility** | Skip links, semantic landmarks, labelled inputs, ≥36px tap targets, chart screen-reader summaries, reduced-motion, dark mode. | **Lighthouse Accessibility = 100** |
-| **Problem Statement Alignment** | Education, footprint tracking (questionnaire + live estimate), personalised insights & recommendations, gamification/incentives — all India-calibrated. | See Features below |
+| **Code Quality** | Strict TypeScript, modular feature folders, shared primitives, ESLint (typescript-eslint + react-hooks) — **0 problems** — and Prettier-enforced formatting. | `npm run lint`, `npm run format:check`, `npm run typecheck` |
+| **Security** | Firebase Auth (no password handling), default-deny + validated Firestore rules, server-side Gemini proxy (no key in client), strict CSP + HSTS + clickjacking headers, **App Check enforced** (reCAPTCHA Enterprise). | [`SECURITY.md`](SECURITY.md), live response headers |
+| **Efficiency** | Route-level code-splitting (initial JS **~46 kB** vs 105 kB), vendor chunking, immutable asset caching, lazy charts, installable PWA. | `npm run build` chunk report |
+| **Testing** | **72 unit tests + 7 Playwright E2E**, all in CI (lint · format · typecheck · unit · build · e2e). | `npm test`, `npm run test:e2e` |
+| **Accessibility** | Skip links, semantic landmarks, labelled inputs (id/htmlFor), accessible radio group, ≥36px tap targets, chart screen-reader summaries, reduced-motion, dark mode. | **Lighthouse Accessibility = 100** |
+| **Problem Statement Alignment** | Education, footprint tracking (questionnaire, live estimate + **AI bill scan**), personalised insights & recommendations, gamification, community forum — all India-calibrated. | See Features below |
 
 **Lighthouse (desktop, live):** Accessibility **100** · SEO **100** · Agentic Browsing **100** · Best
 Practices **77**. The Best-Practices cap is two items inherent to the **Firebase Auth iframe**
@@ -77,31 +77,26 @@ your browser's `localStorage`. Add Firebase/Gemini keys to `.env` to enable the 
 
 ## 🤖 Configure Gemini (optional)
 
-Get a key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey) and set:
-```env
-VITE_GEMINI_API_KEY=...
-VITE_GEMINI_MODEL=gemini-1.5-flash
+AI insights/recommendations and bill scanning are served by a secure **Cloud Function** that keeps
+the key in **Secret Manager** — no key ships to the browser. To enable it on your own project:
+```bash
+firebase functions:secrets:set GEMINI_API_KEY   # paste a key from aistudio.google.com/apikey
+firebase deploy --only functions
 ```
-Without a key, Prithvi uses its built-in **rule-based recommendation engine** (so the app is fully
-functional offline).
-
-> **Security note:** a `VITE_` key ships to the browser. For production, move the Gemini call into
-> a **Firebase Cloud Function** and call that from the client instead of embedding the key.
+then set `VITE_GEMINI_VIA_FUNCTIONS=true`. Without it, Prithvi uses its built-in **deterministic
+recommendation engine**, so the app is fully functional offline. (A `VITE_GEMINI_API_KEY` client
+path also exists for local dev, but it exposes the key and is not used in production.)
 
 ---
 
-## ✅ What is already deployed
+## ✅ What is already live on `supplypulse-c27c0`
 
-On `supplypulse-c27c0`:
-- **Hosting** — the production build is live at https://supplypulse-c27c0.web.app
-- **Firestore rules** — hardened, default-deny, per-user, schema-validated (deployed)
-- **Auth** — Email/Password sign-in is **enabled** and verified end-to-end
-
-### Remaining one-click step (optional): Google sign-in
-Google needs a console-provisioned OAuth client, so it can't be enabled via CLI:
-1. Firebase Console → **Authentication → Sign-in method → Google → Enable**.
-2. Set `VITE_ENABLE_GOOGLE=true` in `.env.production` and redeploy.
-   (Until then the "Continue with Google" button is hidden in production.)
+- **Hosting** — production build at https://supplypulse-c27c0.web.app (installable PWA)
+- **Auth** — Email/Password **and** Google sign-in, enabled and verified end-to-end
+- **Firestore** — hardened rules (default-deny, per-user, schema-validated) deployed
+- **Gemini** — `geminiAdvise` Cloud Function (insights, recommendations, bill OCR) with **App Check
+  enforced** (reCAPTCHA Enterprise) and the on-device engine as a graceful fallback
+- **AI bill scanning** — upload an electricity bill and Gemini Vision reads the kWh
 
 ## ☁️ Re-deploy
 
@@ -119,11 +114,15 @@ firebase deploy --only hosting,firestore:rules --project supplypulse-c27c0
 ## 🧪 Testing
 
 ```bash
-npm test          # Vitest — 29 tests across engine, recommendations, gamification, utils, components
+npm test          # Vitest — 72 unit tests
+npm run test:e2e  # Playwright — 7 end-to-end tests (demo mode, no backend needed)
 ```
 
-Covers the emission engine math, India-specific recommendation ranking, gamification (streaks,
-badges, pledges), formatting utils, plus component and authorization-gate (ProtectedRoute) tests.
+Unit tests cover the emission engine, India-specific recommendation ranking, gamification
+(streaks, badges, pledges), formatting/utility helpers, the Gemini fallback path, community stats,
+the `useDebounce` hook, the `ErrorBoundary`, and the auth context. E2E covers signup → track →
+dashboard, auth validation, and community posting. CI runs lint, `format:check`, typecheck, unit,
+build, and e2e on every push.
 
 ---
 

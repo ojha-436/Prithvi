@@ -8,35 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { useAuth } from "@/context/auth-context";
+import { AGE_BANDS, INDIA_STATES } from "@/lib/profileOptions";
 import type { HomeType } from "@/types";
-
-const STATES = [
-  "Andhra Pradesh",
-  "Assam",
-  "Bihar",
-  "Chhattisgarh",
-  "Delhi",
-  "Goa",
-  "Gujarat",
-  "Haryana",
-  "Himachal Pradesh",
-  "Jharkhand",
-  "Karnataka",
-  "Kerala",
-  "Madhya Pradesh",
-  "Maharashtra",
-  "Odisha",
-  "Punjab",
-  "Rajasthan",
-  "Tamil Nadu",
-  "Telangana",
-  "Uttar Pradesh",
-  "Uttarakhand",
-  "West Bengal",
-  "Other",
-];
-
-const AGE_BANDS = ["Under 18", "18–24", "25–34", "35–44", "45–54", "55+"];
 
 export default function Profile() {
   const { userData, saveProfile } = useAuth();
@@ -166,7 +139,7 @@ export default function Profile() {
                     required
                   >
                     <option value="">Select state</option>
-                    {STATES.map((s) => (
+                    {INDIA_STATES.map((s) => (
                       <option key={s} value={s}>
                         {s}
                       </option>
